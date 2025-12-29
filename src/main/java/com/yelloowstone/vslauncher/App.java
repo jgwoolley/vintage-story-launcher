@@ -1,12 +1,7 @@
 package com.yelloowstone.vslauncher;
 
-import java.io.File;
-
 import javafx.application.Application;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -15,15 +10,12 @@ public class App extends Application {
 
 	@Override
 	public void start(Stage stage) {
-		final ObjectProperty<VintageStoryVersion> versionProperty = new SimpleObjectProperty<>(
-				new VintageStoryVersion(VintageStoryVersion.OperatingSystem.MACOS, 1, 21, 6, null));
-		final ObservableMap<VintageStoryVersion, File> versionsProperty = FXCollections.observableHashMap();
-
-		final VBox root = LibraryPage.create(this, stage, versionProperty, versionsProperty);
-
-		stage.setTitle("Maven + JavaFX (No FXML)");
-		
+		final VBox root = new VBox(10); // 10px spacing
 		final Scene scene = new Scene(root, 400, 300);
+		root.setAlignment(Pos.CENTER);
+		final var context = new Context(stage, root);
+		InstanceSelectionPage.create(context);
+
 		stage.setScene(scene);
 		stage.show();
 	}
