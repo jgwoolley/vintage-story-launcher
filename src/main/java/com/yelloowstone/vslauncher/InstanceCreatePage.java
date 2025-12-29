@@ -1,7 +1,12 @@
 package com.yelloowstone.vslauncher;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -10,38 +15,67 @@ import java.io.File;
 
 public class InstanceCreatePage {
 
+    public static HBox createTextField(final TextField field) {
+        final Label label = new Label("Name");
+
+        final HBox container = new HBox(10);
+        container.getChildren().addAll(label, field);
+
+        return container;
+    }
+
+
     public static void create(final Context context) {
-        final HBox runtimeForm = new HBox(10);
-        final ComboBox<VintageStoryRuntime> runtimeComboBox = new ComboBox<>(context.getRuntimes());
+        final TextField nameField = new TextField();
+        final ObjectProperty<File> dataPathFormProperty = new SimpleObjectProperty<>();
+        final ObjectProperty<File> runtimePathFormProperty = new SimpleObjectProperty<>();
 
-        runtimeForm.getChildren().addAll(runtimeComboBox);
+        dataPathFormProperty.addListener(new ChangeListener<File>() {
+            @Override
+            public void changed(ObservableValue<? extends File> observableValue, File oldValue, File newValue) {
+                nameField.setText(newValue.getName());
+            }
+        });
 
-        final HBox instancePathForm = FileButtonLabel.create(context,"Instance Path", new File[] {
+        if(!context.getDataDirs().isEmpty()) {
+            final File file = context.getDataDirs().get(0);
+            dataPathFormProperty.set(file);
+        }
+
+        if(!context.getRuntimeDirs().isEmpty()) {
+            runtimePathFormProperty.set(context.getRuntimeDirs().get(0));
+        }
+
+        final HBox instanceNameForm = createTextField(nameField);
+
+        final HBox runtimePathForm = FileButtonLabel.create(context,"Runtime Path", new File[] {
+                new File("/Applications/Vintage Story.app"),
+        }, context.getRuntimeDirs(), runtimePathFormProperty);
+
+        final HBox dataPathForm = FileButtonLabel.create(context,"Instance Path", new File[] {
                 new File(System.getProperty("user.home"), "/Documents/VSInstances"),
-        }, context.getInstancePathFormProperty());
+        }, context.getDataDirs(), dataPathFormProperty);
 
         final Button submitButton = new Button("Submit");
         submitButton.setOnAction(x -> {
-            final File path = context.getInstancePathFormProperty().get();
-            final var runtime = runtimeComboBox.getValue();
-            if(path == null || runtime == null) {
+            final String name = nameField.getText();
+            final File runtimePath = runtimePathFormProperty.get();
+            final File dataPath = dataPathFormProperty.get();
+
+            if(name == null || name.isEmpty() || runtimePath == null || !runtimePath.isDirectory() || dataPath == null || !dataPath.isDirectory()) {
                 return;
             }
-            context.getInstances().add(new VintageStoryInstance(runtime, path));
+
+            context.getInstances().add(new VintageStoryInstance(name, runtimePath, dataPath));
 
             InstanceSelectionPage.create(context);
         });
         submitButton.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(submitButton, Priority.ALWAYS);
 
-        final Button backButton = new Button("Back");
-        backButton.setOnAction(x -> {
-            InstanceSelectionPage.create(context);
-        });
-        backButton.setMaxWidth(Double.MAX_VALUE);
-        VBox.setVgrow(backButton, Priority.ALWAYS);
+        final Button backButton = BackButton.create(context);
 
         context.getRootNode().getChildren().clear();
-        context.getRootNode().getChildren().addAll(runtimeForm, instancePathForm, submitButton, backButton);
+        context.getRootNode().getChildren().addAll(instanceNameForm, runtimePathForm, dataPathForm, submitButton, backButton);
     }
 }

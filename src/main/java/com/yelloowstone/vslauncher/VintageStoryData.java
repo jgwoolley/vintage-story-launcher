@@ -2,10 +2,10 @@ package com.yelloowstone.vslauncher;
 
 import java.io.File;
 
-public class VintageStoryRuntime {
+public class VintageStoryData {
     private final File path;
 
-    public VintageStoryRuntime(final File path) {
+    public VintageStoryData(final File path) {
         this.path = path;
     }
 

@@ -2,18 +2,34 @@ package com.yelloowstone.vslauncher;
 
 import javafx.beans.property.SimpleStringProperty;
 
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 
 public class InstanceSelectionPage {
+
+    public static TableColumn<VintageStoryInstance, String> createNameColumn() {
+        final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Name");
+        versionCol.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getName()));
+
+        return versionCol;
+    }
+
+    public static TableColumn<VintageStoryInstance, String> createVersionColumn() {
+        final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Version");
+        versionCol.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getVersion()));
+
+        return versionCol;
+    }
 
     public static TableColumn<VintageStoryInstance, String> createDataPathColumn() {
         final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Instance Path");
         versionCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().toString()));
+                new SimpleStringProperty(data.getValue().getDataPath().toString()));
 
         return versionCol;
     }
@@ -21,16 +37,68 @@ public class InstanceSelectionPage {
     public static TableColumn<VintageStoryInstance, String> createRuntimePathColumn() {
         final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Runtime Path");
         versionCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getRuntime().toString()));
+                new SimpleStringProperty(data.getValue().getRuntimePath().toString()));
 
         return versionCol;
+    }
+
+    public static TableColumn<VintageStoryInstance, String> createLastLoginUserColumn() {
+        final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Last Login");
+        versionCol.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getLastLoginUser()));
+
+        return versionCol;
+    }
+
+    public static TableColumn<VintageStoryInstance, Void> createActionColumn(final Context context) {
+        final TableColumn<VintageStoryInstance, Void> column = new TableColumn<>("Actions");
+        column.setCellFactory(new Callback<TableColumn<VintageStoryInstance, Void>, TableCell<VintageStoryInstance, Void>>() {
+            @Override
+            public TableCell<VintageStoryInstance, Void> call(TableColumn<VintageStoryInstance, Void> vintageStoryInstanceVoidTableColumn) {
+                final HBox buttonBar = new HBox();
+
+                final Button openButton = new Button("Open");
+                final Button moreButton = new Button("More");
+                buttonBar.getChildren().addAll(openButton, moreButton);
+
+                return new TableCell<>(){
+                    @Override
+                    protected void updateItem(Void item, boolean empty) {
+                        super.updateItem(item, empty);
+
+                        if(empty) {
+                            setGraphic(null);
+                            openButton.setOnAction(null);
+                            moreButton.setOnAction(null);
+                        } else {
+                            final var items = this.getTableView().getItems();
+                            final VintageStoryInstance instance = items.get(getIndex());
+                            openButton.setOnAction(x -> {
+                                instance.open();
+                            });
+                            moreButton.setOnAction(x -> {
+                                InstanceInfoPage.create(context, instance);
+                            });
+                            setGraphic(buttonBar);
+                        }
+                    }
+                };
+            }
+        });
+
+        return column;
     }
 
     public static TableView<VintageStoryInstance> createInstanceTable(final Context context) {
         final TableView<VintageStoryInstance> table = new TableView<>(context.getInstances());
 
-        table.getColumns().add(createDataPathColumn());
-        table.getColumns().add(createRuntimePathColumn());
+        table.getColumns().add(createNameColumn());
+//        table.getColumns().add(createVersionColumn());
+//        table.getColumns().add(createLastLoginUserColumn());
+//        table.getColumns().add(createRuntimePathColumn());
+//        table.getColumns().add(createDataPathColumn());
+        table.getColumns().add(createActionColumn(context));
+
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         return table;
@@ -39,7 +107,10 @@ public class InstanceSelectionPage {
     public static Button createLoadLastInstanceButton(final Context context) {
         final Button button = new Button("Load Last Instance");
         button.setOnAction(e -> {
-
+            if(context.getInstances().isEmpty()) {
+                return;
+            }
+            context.getInstances().get(0).open();
         });
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
@@ -58,10 +129,10 @@ public class InstanceSelectionPage {
         return button;
     }
 
-    public static Button createNewRuntimeButton(final Context context) {
-        final Button button = new Button("Create New Runtime");
+    public static Button createCopyButton(final Context context) {
+        final Button button = new Button("Copy Instance Data");
         button.setOnAction(e -> {
-            RuntimeCreatePage.create(context);
+            InstanceCopyPage.create(context);
         });
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
@@ -73,10 +144,10 @@ public class InstanceSelectionPage {
         final Button loadLastInstanceButton = createLoadLastInstanceButton(context);
         final TableView<VintageStoryInstance> table = createInstanceTable(context);
         final Button newInstanceButton = createNewInstanceButton(context);
-        final Button newRuntimeButton = createNewRuntimeButton(context);
+        final Button copyButton = createCopyButton(context);
 
         context.getRootNode().getChildren().clear();
-        context.getRootNode().getChildren().addAll(loadLastInstanceButton, table, newInstanceButton, newRuntimeButton);
+        context.getRootNode().getChildren().addAll(loadLastInstanceButton, table, newInstanceButton, copyButton);
 
     }
 }

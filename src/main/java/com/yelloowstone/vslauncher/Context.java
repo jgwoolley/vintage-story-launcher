@@ -1,7 +1,5 @@
 package com.yelloowstone.vslauncher;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.VBox;
@@ -11,36 +9,37 @@ import java.io.File;
 
 public class Context {
     private final Stage stage;
-    private final ObjectProperty<File> instancePathFormProperty;
-    private final ObjectProperty<File> runtimePathFormProperty;
     private final ObservableList<VintageStoryInstance> instances;
-    private final ObservableList<VintageStoryRuntime> runtimes;
+    private final ObservableList<File> dataDirs;
+    private final ObservableList<File> runtimeDirs;
     private final VBox rootNode;
 
     public Context(final Stage stage, final VBox rootNode) {
         this.stage = stage;
         this.rootNode = rootNode;
         this.instances = FXCollections.observableArrayList();
-        this.runtimes = FXCollections.observableArrayList();
-        this.instancePathFormProperty = new SimpleObjectProperty<>();
-        this.runtimePathFormProperty = new SimpleObjectProperty<>();
+        this.dataDirs = FXCollections.observableArrayList();
+        this.runtimeDirs = FXCollections.observableArrayList();
 
-        if(!this.instances.isEmpty()) {
-            this.instancePathFormProperty.set(this.instances.get(0).getDataPath());
+        final File userHomePath = new File(System.getProperty("user.home"));
+        final File libraryPath = new File(userHomePath, "/Library/Application Support/VintagestoryData");
+        if(libraryPath.exists()) {
+            this.dataDirs.add(libraryPath);
         }
 
-        final File vsInstancePath = new File(System.getProperty("user.home"), "/Documents/VSInstances");
+        final File vsInstancePath = new File(userHomePath, "/Documents/VSInstances");
         final File[] vsInstancePaths = vsInstancePath.listFiles();
         if(vsInstancePaths != null) {
-            for(final File file: vsInstancePaths)
-            {
-                this.runtimes.add(new VintageStoryRuntime(file));
+            for(final File file: vsInstancePaths) {
+                if(new File(file, "clientsettings.json").isFile()) {
+                    this.dataDirs.add(file);
+                }
             }
         }
 
-
-        if(!this.runtimes.isEmpty()) {
-            this.runtimePathFormProperty.set(this.runtimes.get(0).getPath());
+        final File libraryApp = new File("/Applications/Vintage Story.app");
+        if(libraryApp.exists()) {
+            this.runtimeDirs.add(libraryApp);
         }
     }
 
@@ -48,8 +47,12 @@ public class Context {
         return rootNode;
     }
 
-    public ObservableList<VintageStoryRuntime> getRuntimes() {
-        return runtimes;
+    public ObservableList<File> getRuntimeDirs() {
+        return this.runtimeDirs;
+    }
+
+    public ObservableList<File> getDataDirs() {
+        return this.dataDirs;
     }
 
     public ObservableList<VintageStoryInstance> getInstances() {
@@ -58,13 +61,5 @@ public class Context {
 
     public Stage getStage() {
         return stage;
-    }
-
-    public ObjectProperty<File> getInstancePathFormProperty() {
-        return instancePathFormProperty;
-    }
-
-    public ObjectProperty<File> getRuntimePathFormProperty() {
-        return runtimePathFormProperty;
     }
 }
