@@ -18,4 +18,9 @@ public class VintageStoryInstance {
     public VintageStoryRuntime getRuntime() {
         return runtime;
     }
+
+    @Override
+    public String toString() {
+        return this.dataPath.toString();
+    }
 }

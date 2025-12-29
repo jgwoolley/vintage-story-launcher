@@ -12,4 +12,9 @@ public class VintageStoryRuntime {
     public File getPath() {
         return path;
     }
+
+    @Override
+    public String toString() {
+        return this.path.toString();
+    }
 }

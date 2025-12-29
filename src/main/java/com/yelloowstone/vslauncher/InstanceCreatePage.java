@@ -1,54 +1,47 @@
 package com.yelloowstone.vslauncher;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.stage.DirectoryChooser;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 import java.io.File;
 
 public class InstanceCreatePage {
 
-    public static HBox createFileButtonLabel(final Context context, final String labelText, final File[] initialDirectories, final ObjectProperty<File> fileProperty) {
-        final DirectoryChooser directoryChooser = new DirectoryChooser();
-        for(final var initialDirectory: initialDirectories) {
-            if(initialDirectory.exists()) {
-                directoryChooser.setInitialDirectory(initialDirectory);
-                break;
-            }
-        }
-
-        final Button button = new Button("Open");
-        button.setOnAction(x -> {
-            final File selectedFile = directoryChooser.showDialog(context.getStage());
-            if(selectedFile != null && selectedFile.exists()) {
-                fileProperty.set(selectedFile);
-            }
-        });
-
-        final Label label = new Label(labelText);
-        label.textProperty().bind(fileProperty.map(file ->
-                file != null ? file.getName() : "None"
-        ));
-        final HBox container = new HBox(10);
-        container.setAlignment(Pos.CENTER_LEFT);
-        container.getChildren().addAll(label, button);
-        return container;
-    }
-
     public static void create(final Context context) {
-        final ComboBox<VintageStoryRuntime> runtimesComboBox = new ComboBox<>(context.getRuntimes());
-        final HBox instancePathForm = createFileButtonLabel(context,"Instance Path", new File[] {
-                new File(System.getProperty("user.home"), ".config"),
+        final HBox runtimeForm = new HBox(10);
+        final ComboBox<VintageStoryRuntime> runtimeComboBox = new ComboBox<>(context.getRuntimes());
+
+        runtimeForm.getChildren().addAll(runtimeComboBox);
+
+        final HBox instancePathForm = FileButtonLabel.create(context,"Instance Path", new File[] {
+                new File(System.getProperty("user.home"), "/Documents/VSInstances"),
         }, context.getInstancePathFormProperty());
-        final HBox runtimePathForm = createFileButtonLabel(context, "Runtime Path", new File[] {
-                new File("/Applications/Vintage Story.app"),
-        }, context.getRuntimePathFormProperty());
+
+        final Button submitButton = new Button("Submit");
+        submitButton.setOnAction(x -> {
+            final File path = context.getInstancePathFormProperty().get();
+            final var runtime = runtimeComboBox.getValue();
+            if(path == null || runtime == null) {
+                return;
+            }
+            context.getInstances().add(new VintageStoryInstance(runtime, path));
+
+            InstanceSelectionPage.create(context);
+        });
+        submitButton.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(submitButton, Priority.ALWAYS);
+
+        final Button backButton = new Button("Back");
+        backButton.setOnAction(x -> {
+            InstanceSelectionPage.create(context);
+        });
+        backButton.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(backButton, Priority.ALWAYS);
 
         context.getRootNode().getChildren().clear();
-        context.getRootNode().getChildren().addAll(runtimesComboBox, instancePathForm, runtimePathForm);
+        context.getRootNode().getChildren().addAll(runtimeForm, instancePathForm, submitButton, backButton);
     }
 }

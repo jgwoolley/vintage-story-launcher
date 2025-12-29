@@ -29,6 +29,16 @@ public class Context {
             this.instancePathFormProperty.set(this.instances.get(0).getDataPath());
         }
 
+        final File vsInstancePath = new File(System.getProperty("user.home"), "/Documents/VSInstances");
+        final File[] vsInstancePaths = vsInstancePath.listFiles();
+        if(vsInstancePaths != null) {
+            for(final File file: vsInstancePaths)
+            {
+                this.runtimes.add(new VintageStoryRuntime(file));
+            }
+        }
+
+
         if(!this.runtimes.isEmpty()) {
             this.runtimePathFormProperty.set(this.runtimes.get(0).getPath());
         }
