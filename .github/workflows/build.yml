@@ -1,8 +1,9 @@
-name: Build Native Installers
+name: Build and Release Native Installers
 
 on:
   push:
-    branches: [ "main" ]
+    tags:
+      - 'v*' # Triggers on tags like v1.0.0
   workflow_dispatch:
 
 jobs:
@@ -33,29 +34,26 @@ jobs:
       - name: Build Fat JAR with Maven
         run: mvn clean package
 
-      # Install RPM tools on Ubuntu
       - name: Install RPM dependencies
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y rpm
 
-      # 1. WINDOWS: Build MSI and Portable EXE
-      - name: Package Windows MSI
+      # Packaging Steps (Unchanged from your original logic)
+      - name: Package Windows
         if: matrix.os == 'windows-latest'
         run: |
           jpackage --input target/ --dest output/ --name VSLauncher --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type msi --win-dir-chooser --win-shortcut --win-menu
-          
-          # For a "portable" EXE, we create an app-image (folder containing exe + runtime)
+          # Zip the app-image for a "portable" version
           jpackage --input target/ --dest output/portable/ --name VSLauncherPortable --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type app-image
+          compress-archive -Path output/portable/* -DestinationPath output/VSLauncher-Portable-Windows.zip
 
-      # 2. LINUX: Build DEB and RPM
-      - name: Package Linux DEB & RPM
+      - name: Package Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
           jpackage --input target/ --dest output/ --name vslauncher --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type deb --linux-shortcut
           jpackage --input target/ --dest output/ --name vslauncher --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type rpm
 
-      # 3. MACOS: Build DMG
-      - name: Package MacOS DMG
+      - name: Package MacOS
         if: matrix.os == 'macos-latest'
         run: |
           jpackage --input target/ --dest output/ --name VSLauncher --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type dmg
@@ -64,4 +62,26 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: installers-${{ matrix.artifact-type }}
-          path: output/
+          path: output/*
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          merge-multiple: true
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/**
+          generate_release_notes: true
+          draft: false
+          prerelease: false
