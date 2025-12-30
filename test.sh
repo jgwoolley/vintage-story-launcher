@@ -10,3 +10,8 @@ jpackage \
 
 # zipinfo -1 targets/vintagestory-launcher-0.1.1.jar
 # unzip -p input/vintagestory-launcher META-INF/MANIFEST.MF
+
+
+# mvn javafx:run
+# mvn clean package
+# java -jar target/vintagestory-launcher-0.1.1.jar 
