@@ -22,10 +22,17 @@ public class Context {
         this.runtimeDirs = FXCollections.observableArrayList();
 
         final File userHomePath = new File(System.getProperty("user.home"));
-        final File libraryPath = new File(userHomePath, "/Library/Application Support/VintagestoryData");
-        if(libraryPath.exists()) {
-            this.dataDirs.add(libraryPath);
-        }
+
+        for(final File file: new File[] {
+            new File(userHomePath, "/Library/Application Support/VintagestoryData"),
+            new File(userHomePath, "/.config/VintagestoryData/"),
+            new File(userHomePath, "/.config/VintagestoryData2/"), // TODO: Remove
+            new File(userHomePath, "/.var/app/at.vintagestory.VintageStory/config/VintagestoryData/"),
+        }) {
+            if(file.exists()) {
+                this.dataDirs.add(file);
+            }
+        }        
 
         final File vsInstancePath = new File(userHomePath, "/Documents/VSInstances");
         final File[] vsInstancePaths = vsInstancePath.listFiles();
@@ -37,10 +44,17 @@ public class Context {
             }
         }
 
-        final File libraryApp = new File("/Applications/Vintage Story.app");
-        if(libraryApp.exists()) {
-            this.runtimeDirs.add(libraryApp);
-        }
+        // TODO: https://wiki.vintagestory.at/Vintagestory_folder
+
+        for(final File file: new File[] {
+            new File("/Applications/Vintage Story.app"),
+            new File(userHomePath, "/AppData/Roaming/Vintagestory"),
+            new File(userHomePath, "/.local/share/vintagestory"),
+        }) {
+            if(file.exists()) {
+                this.runtimeDirs.add(file);
+            }
+        }        
     }
 
     public VBox getRootNode() {

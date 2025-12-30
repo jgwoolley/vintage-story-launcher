@@ -60,7 +60,52 @@ public class VintageStoryInstance {
         return null;
     }
 
+    public static boolean isWindows() {
+        final String OS = System.getProperty("os.name").toLowerCase();
+        return OS.contains("win");
+    }
+
+    public static boolean isMac() {
+        final String OS = System.getProperty("os.name").toLowerCase();
+        return OS.contains("mac");
+    }
+
+    public static boolean isUnix() {
+        final String OS = System.getProperty("os.name").toLowerCase();
+        return OS.contains("nix") || OS.contains("nux") || OS.contains("aix");
+    }
+
     public void open() {
+        if (isWindows()) {
+            System.out.println("Detected: Windows");
+        } else if (isMac()) {
+            openMac();
+        } else if (isUnix()) {
+            openLinux();
+        } else {
+            System.out.println("Detected: Unknown OS");
+        }
+    }
+
+    public void openLinux() {
+        String[] args = new String[]{
+                new File(this.getRuntimePath(), "run.sh").toString(),
+                "--dataPath",
+                this.getDataPath().toString(),
+        };
+        final ProcessBuilder builder = new ProcessBuilder(args);
+        try {
+            final Process process = builder.start();
+            final int exitCode = process.waitFor();
+            System.out.println(exitCode);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void openMac() {
         String[] args = new String[]{
                 "open",
                 "-n",
