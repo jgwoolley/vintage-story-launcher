@@ -61,6 +61,7 @@ jobs:
           mkdir -p package-in
           cp "target/$SELECTED_JAR" package-in/
           mkdir -p output
+          cp "target/$SELECTED_JAR" output/
 
       # --- WINDOWS ---
       - name: Package Windows
