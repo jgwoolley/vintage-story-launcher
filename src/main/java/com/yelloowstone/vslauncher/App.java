@@ -14,6 +14,7 @@ public class App extends Application {
 	public void start(Stage stage) {
 		final VBox root = new VBox(10); // 10px spacing
 		final Scene scene = new Scene(root, 400, 300);
+		scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
 		root.setAlignment(Pos.CENTER);
 		final var context = new Context(stage, root);
 		InstanceSelectionPage.create(context);

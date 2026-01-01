@@ -1,25 +1,26 @@
 package com.yelloowstone.vslauncher.gui;
 
+import java.awt.Desktop;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.yelloowstone.vslauncher.VintageStoryInstance;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 public class InstanceInfoPage {
-    public static Button createOpenButton(final VintageStoryInstance instance) {
+    public static Button createOpenButton(final Context context, final VintageStoryInstance instance) {
         final Button button = new Button("Open");
         button.setOnAction(x -> {
+        	context.getVolumeProperty().play();
             instance.open();
         });
         button.setMaxWidth(Double.MAX_VALUE);
@@ -27,14 +28,11 @@ public class InstanceInfoPage {
         return button;
     }
 
-    public static Button createOpenFileButton(final String textField, final File file) {
+    public static Button createOpenFileButton(final Context context, final String textField, final File file) {
         final Button button = new Button(textField);
         button.setOnAction(x -> {
-            try {
-                Desktop.getDesktop().open(file);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        	context.getVolumeProperty().play();
+        	Context.openFile(file);
         });
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
@@ -75,9 +73,9 @@ public class InstanceInfoPage {
     }
 
         public static void create(final Context context, final VintageStoryInstance instance) {
-        final Button openButton = createOpenButton(instance);
-        final Button openRuntimeButton = createOpenFileButton("Open Runtime Path", instance.getRuntimePath());
-        final Button openDataButton = createOpenFileButton("Open Data Path", instance.getDataPath());
+        final Button openButton = createOpenButton(context, instance);
+        final Button openRuntimeButton = createOpenFileButton(context, "Open Runtime Path", instance.getRuntimePath());
+        final Button openDataButton = createOpenFileButton(context, "Open Data Path", instance.getDataPath());
         final Button backButton = BackButton.create(context);
         final TableView<Map.Entry<String, String>> table = createInstanceTable(context, instance);
 

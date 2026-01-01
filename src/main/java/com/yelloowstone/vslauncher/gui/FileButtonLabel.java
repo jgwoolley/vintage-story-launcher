@@ -24,6 +24,7 @@ public class FileButtonLabel {
 
         final Button button = new Button("Add");
         button.setOnAction(x -> {
+        	context.getVolumeProperty().play();
             final File selectedFile = directoryChooser.showDialog(context.getStage());
             if(selectedFile == null || !selectedFile.isDirectory()) {
                 return;

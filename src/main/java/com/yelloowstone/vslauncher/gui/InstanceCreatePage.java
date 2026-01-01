@@ -1,6 +1,9 @@
 package com.yelloowstone.vslauncher.gui;
 
+import java.io.File;
+
 import com.yelloowstone.vslauncher.VintageStoryInstance;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -11,9 +14,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-
-import java.io.File;
-import java.time.LocalDateTime;
 
 public class InstanceCreatePage {
 
@@ -60,6 +60,7 @@ public class InstanceCreatePage {
 
         final Button submitButton = new Button("Submit");
         submitButton.setOnAction(x -> {
+        	context.getVolumeProperty().play();
             final String name = nameField.getText();
             final File runtimePath = runtimePathFormProperty.get();
             final File dataPath = dataPathFormProperty.get();

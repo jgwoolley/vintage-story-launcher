@@ -55,7 +55,6 @@ public class VintageStoryInstance {
                 return name.startsWith("version-") && name.endsWith(".txt");
             }
         });
-        System.out.println();
         if(files == null || files.length == 0) {
             return null;
         }
@@ -113,7 +112,7 @@ public class VintageStoryInstance {
         try {
             final Process process = builder.start();
             final int exitCode = process.waitFor();
-            System.out.println(exitCode);
+            System.out.println("Process Exit Code: " +  exitCode);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -134,7 +133,7 @@ public class VintageStoryInstance {
         try {
             final Process process = builder.start();
             final int exitCode = process.waitFor();
-            System.out.println(exitCode);
+            System.out.println("Process Exit Code: " + exitCode);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -148,9 +147,9 @@ public class VintageStoryInstance {
         final File destinationMods = new File(other.getDataPath(), "Mods");
         destinationMods.mkdirs();
 
-        final File[] sourceModFiles = sourceMods.listFiles();
+        final File[] sourceModFiles = sourceMods.listFiles((file, name) -> name.endsWith(".zip"));
         if(sourceModFiles == null) {
-            System.out.println("No mods?!?!");
+            System.err.println("No mods?!?!");
             return;
         }
 

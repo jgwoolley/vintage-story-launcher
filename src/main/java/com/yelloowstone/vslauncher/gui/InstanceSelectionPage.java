@@ -1,19 +1,22 @@
 package com.yelloowstone.vslauncher.gui;
 
-import com.yelloowstone.vslauncher.VintageStoryInstance;
-import javafx.beans.property.SimpleStringProperty;
+import java.time.LocalDateTime;
 
+import com.yelloowstone.vslauncher.VintageStoryInstance;
+
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.transformation.SortedList;
-import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
-
-import java.awt.*;
-import java.io.IOException;
-import java.time.LocalDateTime;
+import javafx.util.Duration;
 
 public class InstanceSelectionPage {
 
@@ -92,9 +95,11 @@ public class InstanceSelectionPage {
                             final var items = this.getTableView().getItems();
                             final VintageStoryInstance instance = items.get(getIndex());
                             openButton.setOnAction(x -> {
+                            	context.getVolumeProperty().play();
                                 instance.open();
                             });
                             moreButton.setOnAction(x -> {
+                            	context.getVolumeProperty().play();
                                 InstanceInfoPage.create(context, instance);
                             });
                             setGraphic(buttonBar);
@@ -131,6 +136,7 @@ public class InstanceSelectionPage {
 
         final Button button = new Button(text);
         button.setOnAction(e -> {
+        	context.getVolumeProperty().play();
             if(context.getInstances().isEmpty()) {
                 return;
             }
@@ -146,6 +152,7 @@ public class InstanceSelectionPage {
     public static Button createNewInstanceButton(final Context context) {
         final Button button = new Button("Create New Instance");
         button.setOnAction(e -> {
+        	context.getVolumeProperty().play();
             InstanceCreatePage.create(context);
         });
         button.setMaxWidth(Double.MAX_VALUE);
@@ -157,6 +164,7 @@ public class InstanceSelectionPage {
     public static Button createCopyButton(final Context context) {
         final Button button = new Button("Copy Instance Data");
         button.setOnAction(e -> {
+        	context.getVolumeProperty().play();
             InstanceCopyPage.create(context);
         });
         button.setMaxWidth(Double.MAX_VALUE);
@@ -164,15 +172,30 @@ public class InstanceSelectionPage {
 
         return button;
     }
-
-    public static Button createOpenConfigButton(final Context context) {
-        final Button button = new Button("Open Config");
-        button.setOnAction(e -> {
-            try {
-                Desktop.getDesktop().open(context.getConfigHome());
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+    
+    public static Button createExitButton(Context context) {
+        final Button button = new Button("Exit");
+        button.setOnAction(event -> {
+        	context.getVolumeProperty().play();
+ 
+         System.out.println("Close button clicked. App will close in 2 seconds.");
+            
+            // Create a PauseTransition for a delay
+            PauseTransition delay = new PauseTransition(Duration.seconds(1.25));
+            
+            // Set the action to perform when the delay finishes
+            // The action is to call Platform.exit() to properly shut down the JavaFX application
+            delay.setOnFinished(e -> {
+                System.out.println("Delay finished. Exiting application.");
+                Platform.exit(); // Preferred way to exit a JavaFX application
+            });
+            
+            // Start the delay
+            delay.play();
+            
+            // Optional: Disable the button immediately to prevent multiple clicks during the delay
+            button.setDisable(true);
+        	
         });
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
@@ -185,11 +208,22 @@ public class InstanceSelectionPage {
         final TableView<VintageStoryInstance> table = createInstanceTable(context);
         final Button newInstanceButton = createNewInstanceButton(context);
         final Button copyButton = createCopyButton(context);
-        final Button openConfigButton = createOpenConfigButton(context);
-
+        final Button openSettingsButton = createOpenSettingsButton(context);
+        final Button exitButton = createExitButton(context);
 
         context.getRootNode().getChildren().clear();
-        context.getRootNode().getChildren().addAll(loadLastInstanceButton, table, newInstanceButton, copyButton, openConfigButton);
-
+        context.getRootNode().getChildren().addAll(loadLastInstanceButton, table, newInstanceButton, copyButton, openSettingsButton, exitButton);
     }
+
+	private static Button createOpenSettingsButton(Context context) {
+        final Button button = new Button("Settings");
+        button.setOnAction(event -> {
+        	context.getVolumeProperty().play();
+        	SettingsPage.create(context);
+        });
+        button.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(button, Priority.ALWAYS);
+
+        return button;
+	}
 }

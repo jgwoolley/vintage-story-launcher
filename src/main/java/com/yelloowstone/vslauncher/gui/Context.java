@@ -10,7 +10,9 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +23,9 @@ public class Context {
     private final ObservableList<VintageStoryInstance> instances;
     private final VBox rootNode;
     private final File configHome;
+    private final AudioClipProperty clickAudioClip;
 
+    
     public Context(final Stage stage, final VBox rootNode) {
          this.mapper = JsonMapper.builder() // format-specific builders
                 .build();
@@ -39,7 +43,6 @@ public class Context {
         this.instances.addListener(new ListChangeListener<VintageStoryInstance>() {
             @Override
             public void onChanged(Change<? extends VintageStoryInstance> c) {
-                System.out.println(saveFile.getAbsolutePath());
                 mapper.writerWithDefaultPrettyPrinter().writeValue(saveFile, instances);
             }
         });
@@ -58,6 +61,8 @@ public class Context {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        this.clickAudioClip = new AudioClipProperty(Context.class.getResource("/click.wav"));
     }
 
     public VBox getRootNode() {
@@ -135,5 +140,42 @@ public class Context {
 
     public File getConfigHome() {
         return configHome;
+    }
+    
+    public AudioClipProperty getVolumeProperty() {
+    	return this.clickAudioClip;
+    }
+    
+    //TODO: Shouldn't be at both Context / Instance
+    public static boolean isWindows() {
+        final String OS = System.getProperty("os.name").toLowerCase();
+        return OS.contains("win");
+    }
+
+    public static boolean isMac() {
+        final String OS = System.getProperty("os.name").toLowerCase();
+        return OS.contains("mac");
+    }
+
+    public static boolean isUnix() {
+        final String OS = System.getProperty("os.name").toLowerCase();
+        return OS.contains("nix") || OS.contains("nux") || OS.contains("aix");
+    }
+    
+    public static void openFile(File file) {
+    	if(Context.isUnix()) {
+    		try {
+                // Use xdg-open for Linux
+                new ProcessBuilder("xdg-open", file.getAbsolutePath()).start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+    	} else {
+    		try {
+                Desktop.getDesktop().open(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+    	}
     }
 }

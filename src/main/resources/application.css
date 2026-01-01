@@ -1,0 +1,37 @@
+.root {
+    -fx-base: #6d3e2d; 
+    -fx-background-color: #9e7f73; 
+
+    /* Define a custom variable name to avoid name collision */
+    -my-global-text-color: white; 
+    
+    -fx-font-family: "Courier New";
+}
+
+.label {
+    /* Reference the custom variable instead of itself */
+    -fx-text-fill: -my-global-text-color; 
+    -fx-font-family: "Courier New";
+}
+
+.button {
+    -fx-background-color: -fx-base;
+    -fx-text-fill: white;
+    -fx-border-color: #5d2916;
+    -fx-font-family: "Courier New";
+}
+
+.button:hover {
+    /* derive(color, percentage) 
+       Positive % makes it lighter, negative % makes it darker */
+    -fx-background-color: derive(#6d3e2d, 30%); 
+    -fx-cursor: hand;
+}
+
+/* You can also use the variable here for consistency */
+.table-view .column-header .label,
+.table-view .table-cell,
+.table-view .placeholder .label {
+    -fx-text-fill: -my-global-text-color;
+    -fx-font-family: "Courier New";
+}
