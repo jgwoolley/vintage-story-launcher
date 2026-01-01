@@ -9,7 +9,7 @@ A graphical user interface designed to manage multiple instances of **Vintage St
 
 ## 🚀 Getting Started
 
-To get the latest version of the launcher, visit the **Releases** page. We provide native installers for all major operating systems and a standalone Fat JAR for advanced users.
+To get the latest version of the launcher, visit the **Releases** page. Native installers for all major operating systems and a standalone Fat JAR are provided.
 
 ### [👉 Download Latest Release](https://github.com/jgwoolley/vintage-story-launcher/releases/latest)
 
