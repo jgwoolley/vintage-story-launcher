@@ -29,6 +29,7 @@ Choose the version that best fits your system:
 
 ### 🍎 macOS
 * **Disk Image (.dmg):** Open the DMG and drag the VS Launcher to your Applications folder.
+* Guide for downloading from unknown source: https://support.apple.com/en-eg/guide/mac-help/mh40616/mac
 
 ### ☕ Cross-Platform
 * **Fat JAR (.jar):** For users who already have **Java 17+** installed. Run via terminal:
