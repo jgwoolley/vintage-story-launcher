@@ -60,7 +60,7 @@ jobs:
       - name: Package MacOS
         if: matrix.os == 'macos-latest'
         run: |
-          jpackage --input target/ --dest output/ --name VSLauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type dmg --mac-package-identifier "com.yelloowstone.vslauncher" --mac-package-name "Vintage Story Launcher" --app-version "0.1.1"
+          jpackage --input target/ --dest output/ --name VSLauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type dmg --mac-package-identifier "com.yelloowstone.vslauncher" --mac-package-name "Vintage Story Launcher" --app-version "1.0.0"
 
       - name: Copy JAR to Output
         shell: bash
