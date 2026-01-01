@@ -11,7 +11,7 @@ A graphical user interface designed to manage multiple instances of **Vintage St
 
 To get the latest version of the launcher, visit our **Releases** page. We provide native installers for all major operating systems and a standalone Fat JAR for advanced users.
 
-### [👉 Download Latest Release](https://github.com/jgwool2/vintage-story-launcher/releases/latest)
+### [👉 Download Latest Release](https://github.com/jgwoolley/vintage-story-launcher/releases/latest)
 
 ---
 
