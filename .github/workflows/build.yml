@@ -48,15 +48,18 @@ jobs:
       - name: Build Fat JAR
         run: mvn clean package
 
-      - name: Identify JAR
-        shell: bash
-        run: echo "JAR_NAME=$(basename $(ls target/*.jar | grep -v 'original' | grep -v 'sources' | grep -v 'javadoc' | head -n 1))" >> $GITHUB_ENV
-
       - name: Prepare Packaging Folder
         shell: bash
         run: |
+          # Find the JAR and store it in a local bash variable
+          SELECTED_JAR=$(basename $(ls target/*.jar | grep -v 'original' | grep -v 'sources' | grep -v 'javadoc' | head -n 1))
+          
+          # Export it for FUTURE steps (jpackage)
+          echo "JAR_NAME=$SELECTED_JAR" >> $GITHUB_ENV
+          
+          # Use the local variable for THIS step
           mkdir -p package-in
-          cp target/${{ env.JAR_NAME }} package-in/
+          cp "target/$SELECTED_JAR" package-in/
           mkdir -p output
 
       # --- WINDOWS ---
