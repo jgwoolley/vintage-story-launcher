@@ -3,13 +3,13 @@
 [![Release](https://img.shields.io/github/v/release/jgwoolley/vintage-story-launcher?display_name=tag&sort=semver)](https://github.com/jgwoolley/vintage-story-launcher/releases)
 [![License](https://img.shields.io/github/license/jgwoolley/vintage-story-launcher)](LICENSE)
 
-A graphical user interface designed to manage multiple instances of **Vintage Story** on a single machine. Perfect for switching between different mod sets, game versions, or server configurations without manual folder management.
+A graphical user interface designed to manage multiple instances of **Vintage Story** on a single machine. Enables switching between different mod sets, game versions, or server configurations without manual folder management.
 
 ---
 
 ## 🚀 Getting Started
 
-To get the latest version of the launcher, visit our **Releases** page. We provide native installers for all major operating systems and a standalone Fat JAR for advanced users.
+To get the latest version of the launcher, visit the **Releases** page. We provide native installers for all major operating systems and a standalone Fat JAR for advanced users.
 
 ### [👉 Download Latest Release](https://github.com/jgwoolley/vintage-story-launcher/releases/latest)
 
