@@ -24,12 +24,13 @@ jobs:
             artifact-type: linux-x64
             arch: x64
           # macOS Intel (x64)
-          - os: macos-13 # Intel Runner
-            runner: macos-13
+          - os: macos-15-intel
+            runner: macos-15-intel
             artifact-type: macos-x64
             arch: x64
-          # macOS Apple Silicon (arm64)
-          - os: macos-latest # Usually M1/M2 runner
+
+          # macOS Apple Silicon (ARM64)
+          - os: macos-latest
             runner: macos-latest
             artifact-type: macos-arm64
             arch: arm64
