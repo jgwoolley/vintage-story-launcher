@@ -92,7 +92,7 @@ public class VintageStoryInstance {
 
     public void open() {
         if (isWindows()) {
-            System.out.println("Detected: Windows");
+        	openWindows();
         } else if (isMac()) {
             openMac();
         } else if (isUnix()) {
@@ -102,6 +102,25 @@ public class VintageStoryInstance {
         }
     }
 
+    public void openWindows() {
+    	// Fonts might not work see bash script...
+        final String[] args = new String[]{
+                new File(this.getRuntimePath(), "Vintagestory").toString(),
+                "--dataPath",
+                this.getDataPath().toString(),
+        };
+        final ProcessBuilder builder = new ProcessBuilder(args);
+        try {
+            final Process process = builder.start();
+            final int exitCode = process.waitFor();
+            System.out.println("Process Exit Code: " +  exitCode);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    
     public void openLinux() {
         String[] args = new String[]{
                 new File(this.getRuntimePath(), "run.sh").toString(),

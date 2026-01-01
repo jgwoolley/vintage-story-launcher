@@ -48,8 +48,16 @@
 	<build>
 		<resources>
 			<resource>
-				<directory>src/main/resources</directory>
+				<directory>src/main/resources/templates</directory>
 				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resource/audio</directory>
+				<filtering>false</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources/css</directory>
+				<filtering>false</filtering>
 			</resource>
 		</resources>
 		<plugins>
