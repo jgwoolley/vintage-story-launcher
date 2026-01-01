@@ -3,33 +3,31 @@ name: Build and Release Native Installers
 on:
   push:
     tags:
-      - 'v*' # Triggers on tags like v1.0.0
+      - 'v*'
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build on ${{ matrix.os }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     strategy:
+      fail-fast: false
       matrix:
         include:
-          # Windows (x64)
           - os: windows-latest
             runner: windows-latest
             artifact-type: windows-x64
             arch: x64
-          # Linux (x64)
           - os: ubuntu-latest
             runner: ubuntu-latest
             artifact-type: linux-x64
             arch: x64
-          # macOS Intel (x64)
+          # INTEL MAC
           - os: macos-15-intel
             runner: macos-15-intel
             artifact-type: macos-x64
             arch: x64
-
-          # macOS Apple Silicon (ARM64)
+          # APPLE SILICON MAC
           - os: macos-latest
             runner: macos-latest
             artifact-type: macos-arm64
@@ -44,64 +42,45 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          architecture: ${{ matrix.arch }} # Ensures the correct Java arch is used
+          architecture: ${{ matrix.arch }}
           cache: 'maven'
 
-      - name: Build Fat JAR with Maven
+      - name: Build Fat JAR
         run: mvn clean package
 
       - name: Identify JAR
         shell: bash
         run: echo "JAR_NAME=$(basename $(ls target/*.jar | grep -v 'original' | grep -v 'sources' | grep -v 'javadoc' | head -n 1))" >> $GITHUB_ENV
 
-      - name: Install RPM dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install -y rpm
-
       - name: Prepare Packaging Folder
         shell: bash
         run: |
           mkdir -p package-in
           cp target/${{ env.JAR_NAME }} package-in/
+          mkdir -p output
 
-      # Packaging Steps (Unchanged from your original logic)
+      # --- WINDOWS ---
       - name: Package Windows
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          # Create the output directories
-          if (!(Test-Path "output/portable")) { New-Item -ItemType Directory -Path "output/portable" }
-          
-          # Build MSI
-          jpackage --input package-in --dest output/ --name VSLauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type msi --win-dir-chooser --win-shortcut --win-menu
-          
-          # Build App Image (Portable)
-          jpackage --input package-in --dest output/portable/ --name VSLauncherPortable --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type app-image
-          
-          # Zip the resulting folder
-          Compress-Archive -Path "output/portable/VSLauncherPortable" -DestinationPath "output/VSLauncher-Portable-Windows.zip"
+          jpackage --input package-in --dest output/ --name "VSLauncher-Win-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type msi --win-dir-chooser --win-shortcut --win-menu
+          jpackage --input package-in --dest output/portable/ --name "VSLauncher-Portable" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type app-image
+          Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-Win-${{ matrix.arch }}-Portable.zip"
+
+      # --- LINUX ---
       - name: Package Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          mkdir -p output
-          jpackage --input package-in --dest output/ --name vslauncher \
-            --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher \
-            --type deb --linux-shortcut --linux-menu-group "Game" \
-            --linux-app-category "Game" --description "Launcher for Vintage Story" \
-            --vendor "Yellowstone"
-          jpackage --input package-in --dest output/ --name vslauncher \
-            --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher \
-            --type rpm
-      
-      - name: Package MacOS
-        if: matrix.os == 'macos-latest'
-        run: |
-          mkdir -p output
-          jpackage --input package-in --dest output/ --name VSLauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type dmg --mac-package-identifier "com.yelloowstone.vslauncher" --mac-package-name "Vintage Story Launcher" --app-version "1.0.0"
+          sudo apt-get update && sudo apt-get install -y rpm
+          jpackage --input package-in --dest output/ --name "vslauncher-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type deb --linux-shortcut --linux-menu-group "Game"
+          jpackage --input package-in --dest output/ --name "vslauncher-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type rpm
 
-      - name: Copy JAR to Output
-        shell: bash
-        run: cp target/${{ env.JAR_NAME }} output/
+      # --- MACOS ---
+      - name: Package MacOS
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          jpackage --input package-in --dest output/ --name "VSLauncher-Mac-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type dmg --mac-package-identifier "com.yelloowstone.vslauncher" --mac-package-name "Vintage Story Launcher ${{ matrix.arch }}" --app-version "1.0.0"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -123,19 +102,13 @@ jobs:
           path: ./all-installers
           merge-multiple: true
 
-      - name: Display structure of downloaded files
-        run: ls -R ./all-installers
-
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          # This glob pattern ensures we pick up files in the root and subdirs
           files: |
             ./all-installers/*.msi
             ./all-installers/*.zip
             ./all-installers/*.deb
             ./all-installers/*.rpm
             ./all-installers/*.dmg
-            ./all-installers/*.jar
           generate_release_notes: true
-          fail_on_unmatched_files: false
