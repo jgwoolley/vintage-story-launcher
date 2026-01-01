@@ -62,6 +62,10 @@ jobs:
         run: |
           jpackage --input target/ --dest output/ --name VSLauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type dmg -mac-package-identifier "com.yelloowstone.vslauncher" --mac-package-name "Vintage Story Launcher" --app-version "0.1.1"
 
+      - name: Copy JAR to Output
+        shell: bash
+        run: cp target/${{ env.JAR_NAME }} output/
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -95,5 +99,6 @@ jobs:
             ./all-installers/*.deb
             ./all-installers/*.rpm
             ./all-installers/*.dmg
+            ./all-installers/*.jar
           generate_release_notes: true
           fail_on_unmatched_files: false
