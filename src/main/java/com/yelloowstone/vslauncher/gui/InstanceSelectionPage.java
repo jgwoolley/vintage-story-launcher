@@ -3,11 +3,17 @@ package com.yelloowstone.vslauncher.gui;
 import com.yelloowstone.vslauncher.VintageStoryInstance;
 import javafx.beans.property.SimpleStringProperty;
 
+import javafx.collections.transformation.SortedList;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+
+import java.awt.*;
+import java.io.IOException;
+import java.time.LocalDateTime;
 
 public class InstanceSelectionPage {
 
@@ -31,6 +37,17 @@ public class InstanceSelectionPage {
         final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Instance Path");
         versionCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getDataPath().toString()));
+
+        return versionCol;
+    }
+
+    public static TableColumn<VintageStoryInstance, String> createLastOpenColumn() {
+        final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Last Open");
+        versionCol.setCellValueFactory(data ->
+        {
+            final LocalDateTime value = data.getValue().getLastOpen();
+            return new SimpleStringProperty(value == null ? "" : value.toString());
+        });
 
         return versionCol;
     }
@@ -96,6 +113,7 @@ public class InstanceSelectionPage {
         table.getColumns().add(createNameColumn());
         table.getColumns().add(createVersionColumn());
         table.getColumns().add(createLastLoginUserColumn(context));
+        table.getColumns().add(createLastOpenColumn());
 //        table.getColumns().add(createRuntimePathColumn());
 //        table.getColumns().add(createDataPathColumn());
         table.getColumns().add(createActionColumn(context));
@@ -106,12 +124,18 @@ public class InstanceSelectionPage {
     }
 
     public static Button createLoadLastInstanceButton(final Context context) {
-        final Button button = new Button("Load Last Instance");
+        final SortedList<VintageStoryInstance> sorted = context.getInstances().sorted((a, b) -> a.getLastOpen().compareTo(b.getLastOpen()));
+        final VintageStoryInstance instance = sorted == null || sorted.isEmpty() ? null: sorted.get(0);
+        final String text = "Load Last Instance (" + (instance == null ? "None": sorted.get(0).getName()) + ")";
+
+
+        final Button button = new Button(text);
         button.setOnAction(e -> {
             if(context.getInstances().isEmpty()) {
                 return;
             }
-            context.getInstances().get(0).open();
+
+            sorted.get(0).open();
         });
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
@@ -141,14 +165,31 @@ public class InstanceSelectionPage {
         return button;
     }
 
+    public static Button createOpenConfigButton(final Context context) {
+        final Button button = new Button("Open Config");
+        button.setOnAction(e -> {
+            try {
+                Desktop.getDesktop().open(context.getConfigHome());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+        button.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(button, Priority.ALWAYS);
+
+        return button;
+    }
+
     public static void create(final Context context) {
         final Button loadLastInstanceButton = createLoadLastInstanceButton(context);
         final TableView<VintageStoryInstance> table = createInstanceTable(context);
         final Button newInstanceButton = createNewInstanceButton(context);
         final Button copyButton = createCopyButton(context);
+        final Button openConfigButton = createOpenConfigButton(context);
+
 
         context.getRootNode().getChildren().clear();
-        context.getRootNode().getChildren().addAll(loadLastInstanceButton, table, newInstanceButton, copyButton);
+        context.getRootNode().getChildren().addAll(loadLastInstanceButton, table, newInstanceButton, copyButton, openConfigButton);
 
     }
 }

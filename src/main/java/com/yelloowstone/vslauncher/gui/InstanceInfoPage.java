@@ -64,10 +64,12 @@ public class InstanceInfoPage {
         values.put("version", instance.getVersion());
         values.put("Runtime Path", instance.getRuntimePath().toString());
         values.put("Data Path", instance.getDataPath().toString());
+        values.put("Last Open", instance.getLastOpen().toString());
 
         final TableView<Map.Entry<String, String>> table = new TableView<>(FXCollections.observableArrayList(values.entrySet()));
         table.getColumns().add(createKeyColumn());
         table.getColumns().add(createValueColumn());
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         return table;
     }

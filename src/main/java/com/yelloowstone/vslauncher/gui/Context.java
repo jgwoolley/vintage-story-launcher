@@ -20,6 +20,7 @@ public class Context {
     private final Stage stage;
     private final ObservableList<VintageStoryInstance> instances;
     private final VBox rootNode;
+    private final File configHome;
 
     public Context(final Stage stage, final VBox rootNode) {
          this.mapper = JsonMapper.builder() // format-specific builders
@@ -29,8 +30,11 @@ public class Context {
         this.rootNode = rootNode;
         this.instances = FXCollections.observableArrayList();
 
-        // TODO: Save somewhere else...
-        final File saveFile = new File("test.json");
+        // https://specifications.freedesktop.org/basedir/latest/
+        this.configHome = new File(System.getProperty("user.home"), ".config/VSLauncher");
+        configHome.mkdirs();
+
+        final File saveFile = new File(configHome, "config.json");
 
         this.instances.addListener(new ListChangeListener<VintageStoryInstance>() {
             @Override
@@ -63,7 +67,6 @@ public class Context {
     public ObservableList<VintageStoryInstance> getInstances() {
         return instances;
     }
-
 
     public ObservableList<File> getRuntimeDirs() {
         final Set<File> runtimeDirs = new HashSet<>();
@@ -128,5 +131,9 @@ public class Context {
 
     public ObjectMapper getObjectMapper() {
         return mapper;
+    }
+
+    public File getConfigHome() {
+        return configHome;
     }
 }

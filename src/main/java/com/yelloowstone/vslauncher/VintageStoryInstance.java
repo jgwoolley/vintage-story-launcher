@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class VintageStoryInstance {
     private final String name;
@@ -29,6 +31,12 @@ public class VintageStoryInstance {
 
     public String getName() {
         return this.name;
+    }
+
+    public LocalDateTime getLastOpen() {
+        final File src = new File(dataPath, "clientsettings.json");
+        final Instant instant = Instant.ofEpochMilli(src.lastModified());
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 
     public File getDataPath() {
