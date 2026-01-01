@@ -34,6 +34,10 @@ jobs:
       - name: Build Fat JAR with Maven
         run: mvn clean package
 
+      - name: Identify JAR
+        shell: bash
+        run: echo "JAR_NAME=$(basename target/*.jar)" >> $GITHUB_ENV
+
       - name: Install RPM dependencies
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y rpm
@@ -42,21 +46,21 @@ jobs:
       - name: Package Windows
         if: matrix.os == 'windows-latest'
         run: |
-          jpackage --input target/ --dest output/ --name VSLauncher --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type msi --win-dir-chooser --win-shortcut --win-menu
+          jpackage --input target/ --dest output/ --name VSLauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type msi --win-dir-chooser --win-shortcut --win-menu
           # Zip the app-image for a "portable" version
-          jpackage --input target/ --dest output/portable/ --name VSLauncherPortable --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type app-image
+          jpackage --input target/ --dest output/portable/ --name VSLauncherPortable --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type app-image
           compress-archive -Path output/portable/* -DestinationPath output/VSLauncher-Portable-Windows.zip
 
       - name: Package Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          jpackage --input target/ --dest output/ --name vslauncher --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type deb --linux-shortcut
-          jpackage --input target/ --dest output/ --name vslauncher --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type rpm
+          jpackage --input target/ --dest output/ --name vslauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type deb --linux-shortcut
+          jpackage --input target/ --dest output/ --name vslauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type rpm
 
       - name: Package MacOS
         if: matrix.os == 'macos-latest'
         run: |
-          jpackage --input target/ --dest output/ --name VSLauncher --main-jar vintagestory-launcher-0.1.1.jar --main-class com.yelloowstone.vslauncher.Launcher --type dmg
+          jpackage --input target/ --dest output/ --name VSLauncher --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type dmg
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -75,13 +79,21 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ./artifacts
+          path: ./all-installers
           merge-multiple: true
+
+      - name: Display structure of downloaded files
+        run: ls -R ./all-installers
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./artifacts/**
+          # This glob pattern ensures we pick up files in the root and subdirs
+          files: |
+            ./all-installers/*.msi
+            ./all-installers/*.zip
+            ./all-installers/*.deb
+            ./all-installers/*.rpm
+            ./all-installers/*.dmg
           generate_release_notes: true
-          draft: false
-          prerelease: false
+          fail_on_unmatched_files: false
