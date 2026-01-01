@@ -1,7 +1,7 @@
 # 🏺 Yelloowstone's VintageStory Launcher
 
-[![Release](https://img.shields.io/github/v/release/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME?display_name=tag&sort=semver)](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/releases)
-[![License](https://img.shields.io/github/license/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/jgwoolley/vintage-story-launcher?display_name=tag&sort=semver)](https://github.com/jgwoolley/vintage-story-launcher/releases)
+[![License](https://img.shields.io/github/license/jgwoolley/vintage-story-launcher)](LICENSE)
 
 A graphical user interface designed to manage multiple instances of **Vintage Story** on a single machine. Perfect for switching between different mod sets, game versions, or server configurations without manual folder management.
 
@@ -11,7 +11,7 @@ A graphical user interface designed to manage multiple instances of **Vintage St
 
 To get the latest version of the launcher, visit our **Releases** page. We provide native installers for all major operating systems and a standalone Fat JAR for advanced users.
 
-### [👉 Download Latest Release](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/releases/latest)
+### [👉 Download Latest Release](https://github.com/jgwool2/vintage-story-launcher/releases/latest)
 
 ---
 
