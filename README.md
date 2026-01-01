@@ -33,7 +33,7 @@ Choose the version that best fits your system:
 ### ☕ Cross-Platform
 * **Fat JAR (.jar):** For users who already have **Java 17+** installed. Run via terminal:
     ```bash
-    java -jar VSLauncher.jar
+    java -jar vintagestory-launcher-0.1.1.jar
     ```
 
 ---
