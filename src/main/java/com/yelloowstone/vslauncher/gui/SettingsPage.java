@@ -24,18 +24,30 @@ public class SettingsPage {
         return button;
     }
 	
-    private static Label createVersionLabel() {
-    	String version = "Unknown";
+    private static Properties getProperties() {
     	try {
-        	Properties props = new Properties();
-			props.load(SettingsPage.class.getResourceAsStream("/vintagestory.properties"));
-			version = props.getProperty("version");
+        	Properties properties = new Properties();
+        	properties.load(SettingsPage.class.getResourceAsStream("/vintagestory.properties"));
+			return properties;
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
     	
-    	return new Label("Version: " + version);
+    	return null;
+    }
+    
+    private static Label createVersionLabel(final Properties properties, final String key, final String text) {
+    	String version = "Unknown";
+    	if(properties != null) {
+    		try {
+    			version = properties.getProperty(key);
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    	}
+    	
+    	return new Label(text + ": " + version);
     }
     
     private static HBox createVolumeForm(final Context context) {
@@ -58,13 +70,16 @@ public class SettingsPage {
     }
     
 	public static void create(final Context context) {
-		final Label versionLabel = createVersionLabel();
+		final Properties properties = getProperties() ;
+		
+		final Label versionLabel = createVersionLabel(properties, "version", "Version");
+		final Label buildTimeLabel = createVersionLabel(properties, "build.time", "Build Time");
         final Button openConfigButton = createOpenConfigButton(context);
         final Button backButton = BackButton.create(context);
         
         final HBox volumeForm = createVolumeForm(context);
         
         context.getRootNode().getChildren().clear();
-        context.getRootNode().getChildren().addAll(versionLabel, volumeForm, openConfigButton, backButton);
+        context.getRootNode().getChildren().addAll(versionLabel, buildTimeLabel, volumeForm, openConfigButton, backButton);
     }
 }
