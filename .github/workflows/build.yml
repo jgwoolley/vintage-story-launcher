@@ -61,7 +61,7 @@ jobs:
           mkdir -p package-in
           cp "target/$SELECTED_JAR" package-in/
           mkdir -p output
-          cp "target/$SELECTED_JAR" output/
+          cp "target/$SELECTED_JAR" "output/VSLauncher-${{ matrix.artifact-type }}.jar"
 
       # --- WINDOWS ---
       - name: Package Windows
@@ -126,4 +126,5 @@ jobs:
             ./all-installers/*.deb
             ./all-installers/*.rpm
             ./all-installers/*.dmg
+            ./all-installers/*.jar
           generate_release_notes: true
