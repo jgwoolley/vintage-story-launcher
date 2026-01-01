@@ -80,6 +80,15 @@ public class InstanceSelectionPage {
 
                 final Button openButton = new Button("Open");
                 final Button moreButton = new Button("More");
+
+                // 2. Allow both buttons to grow equally
+                HBox.setHgrow(openButton, Priority.ALWAYS);
+                HBox.setHgrow(moreButton, Priority.ALWAYS);
+
+                // 3. Force them to actually use the space provided by HGrow
+                openButton.setMaxWidth(Double.MAX_VALUE);
+                moreButton.setMaxWidth(Double.MAX_VALUE);
+                
                 buttonBar.getChildren().addAll(openButton, moreButton);
 
                 return new TableCell<>(){

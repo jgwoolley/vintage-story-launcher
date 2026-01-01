@@ -17,12 +17,20 @@ import javafx.scene.layout.VBox;
 
 public class InstanceCreatePage {
 
-    public static HBox createTextField(final TextField field) {
+    public static HBox createTextField(final Context context, final TextField field) {
         final Label label = new Label("Name");
 
         final HBox container = new HBox(10);
         container.getChildren().addAll(label, field);
 
+        // 1. Allow the ComboBox to grow and fill available space
+        HBox.setHgrow(field, Priority.ALWAYS);
+        field.setMaxWidth(Double.MAX_VALUE);
+
+        // 2. Set the HBox to take up half the width of its parent
+        // Note: This works best if the parent is a VBox or similar layout
+        container.prefWidthProperty().bind(context.getStage().widthProperty().divide(2));
+        
         return container;
     }
 
@@ -48,7 +56,7 @@ public class InstanceCreatePage {
             runtimePathFormProperty.set(context.getRuntimeDirs().get(0));
         }
 
-        final HBox instanceNameForm = createTextField(nameField);
+        final HBox instanceNameForm = createTextField(context, nameField);
 
         final HBox runtimePathForm = FileButtonLabel.create(context,"Runtime Path", new File[] {
                 new File("/Applications/Vintage Story.app"),

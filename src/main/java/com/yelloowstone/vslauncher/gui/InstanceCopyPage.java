@@ -23,6 +23,15 @@ public class InstanceCopyPage {
         final HBox container = new HBox(10);
         container.getChildren().addAll(label, instanceComboBox);
 
+        
+        // 1. Allow the ComboBox to grow and fill available space
+        HBox.setHgrow(instanceComboBox, Priority.ALWAYS);
+        instanceComboBox.setMaxWidth(Double.MAX_VALUE);
+
+        // 2. Set the HBox to take up half the width of its parent
+        // Note: This works best if the parent is a VBox or similar layout
+        container.prefWidthProperty().bind(context.getStage().widthProperty().divide(2));
+        
         return container;
     }
 

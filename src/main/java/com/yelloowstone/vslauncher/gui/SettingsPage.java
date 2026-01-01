@@ -11,7 +11,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public class SettingsPage {
-    public static Button createOpenConfigButton(final Context context) {
+    private static Button createOpenConfigButton(final Context context) {
         final Button button = new Button("Open Config");
         button.setOnAction(e -> {
         	context.getVolumeProperty().play();
@@ -24,7 +24,7 @@ public class SettingsPage {
         return button;
     }
 	
-    public static Label createVersionLabel() {
+    private static Label createVersionLabel() {
     	String version = "Unknown";
     	try {
         	Properties props = new Properties();
@@ -38,18 +38,31 @@ public class SettingsPage {
     	return new Label("Version: " + version);
     }
     
+    private static HBox createVolumeForm(final Context context) {
+        final Label volumeLabel = new Label("Volume");
+        final Slider slider = new Slider(0, 1.0, 1.0);
+        slider.valueProperty().bindBidirectional(context.getVolumeProperty().getProperty());
+
+    	 // 1. Allow the ComboBox to grow and fill available space
+        HBox.setHgrow(slider, Priority.ALWAYS);
+        slider.setMaxWidth(Double.MAX_VALUE);
+
+    	final HBox volumeForm = new HBox(10);
+        volumeForm.getChildren().addAll(volumeLabel, slider);
+
+        // 2. Set the HBox to take up half the width of its parent
+        // Note: This works best if the parent is a VBox or similar layout
+    	volumeForm.prefWidthProperty().bind(context.getStage().widthProperty().divide(2));
+    	
+    	return volumeForm;
+    }
+    
 	public static void create(final Context context) {
 		final Label versionLabel = createVersionLabel();
         final Button openConfigButton = createOpenConfigButton(context);
         final Button backButton = BackButton.create(context);
         
-        final HBox volumeForm = new HBox(10);
-        final Label volumeLabel = new Label("Volume");
-        final Slider slider = new Slider(0, 1.0, 1.0);
-        
-        volumeForm.getChildren().addAll(volumeLabel, slider);
-
-        slider.valueProperty().bindBidirectional(context.getVolumeProperty().getProperty());
+        final HBox volumeForm = createVolumeForm(context);
         
         context.getRootNode().getChildren().clear();
         context.getRootNode().getChildren().addAll(versionLabel, volumeForm, openConfigButton, backButton);
