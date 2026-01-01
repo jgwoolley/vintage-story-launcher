@@ -13,12 +13,26 @@ jobs:
     strategy:
       matrix:
         include:
+          # Windows (x64)
           - os: windows-latest
-            artifact-type: windows
+            runner: windows-latest
+            artifact-type: windows-x64
+            arch: x64
+          # Linux (x64)
           - os: ubuntu-latest
-            artifact-type: linux
-          - os: macos-latest
-            artifact-type: macos
+            runner: ubuntu-latest
+            artifact-type: linux-x64
+            arch: x64
+          # macOS Intel (x64)
+          - os: macos-13 # Intel Runner
+            runner: macos-13
+            artifact-type: macos-x64
+            arch: x64
+          # macOS Apple Silicon (arm64)
+          - os: macos-latest # Usually M1/M2 runner
+            runner: macos-latest
+            artifact-type: macos-arm64
+            arch: arm64
 
     steps:
       - name: Checkout Code
@@ -29,6 +43,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          architecture: ${{ matrix.arch }} # Ensures the correct Java arch is used
           cache: 'maven'
 
       - name: Build Fat JAR with Maven
