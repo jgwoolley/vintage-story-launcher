@@ -1,4 +1,4 @@
-# 🏺 Yelloowstone's VintageStory Launcher
+# 🏺 Yelloowstone VintageStory Launcher
 
 [![Release](https://img.shields.io/github/v/release/jgwoolley/vintage-story-launcher?display_name=tag&sort=semver)](https://github.com/jgwoolley/vintage-story-launcher/releases)
 [![License](https://img.shields.io/github/license/jgwoolley/vintage-story-launcher)](LICENSE)
