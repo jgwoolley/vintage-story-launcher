@@ -1,5 +1,9 @@
 package com.yelloowstone.vslauncher;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import tools.jackson.databind.ObjectMapper;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -13,7 +17,11 @@ public class VintageStoryInstance {
     private final File runtimePath;
     private final File dataPath;
 
-    public VintageStoryInstance(final String name, final File runtimePath, final File dataPath) {
+    @JsonCreator
+    public VintageStoryInstance(
+            @JsonProperty("name") final String name,
+            @JsonProperty("runtimePath") final File runtimePath,
+            @JsonProperty("dataPath") final File dataPath) {
         this.name = name;
         this.runtimePath = runtimePath;
         this.dataPath = dataPath;
@@ -152,4 +160,12 @@ public class VintageStoryInstance {
         }
     }
 
+    public ClientSettingsFile getClientSettingsFile(ObjectMapper objectMapper) {
+        final File src = new File(dataPath, "clientsettings.json");
+        return objectMapper.readValue(src, ClientSettingsFile.class);
+    }
+
+    public String getPlayer(ObjectMapper objectMapper) {
+        return getClientSettingsFile(objectMapper).getStringSettings().get("playername");
+    }
 }

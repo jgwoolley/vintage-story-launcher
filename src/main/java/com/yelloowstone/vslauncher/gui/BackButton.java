@@ -1,4 +1,4 @@
-package com.yelloowstone.vslauncher;
+package com.yelloowstone.vslauncher.gui;
 
 import javafx.scene.control.Button;
 import javafx.scene.layout.Priority;

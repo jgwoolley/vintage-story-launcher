@@ -1,10 +1,12 @@
 package com.yelloowstone.vslauncher;
 
+import com.yelloowstone.vslauncher.gui.Context;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import com.yelloowstone.vslauncher.gui.InstanceSelectionPage;
 
 public class App extends Application {
 
@@ -15,6 +17,8 @@ public class App extends Application {
 		root.setAlignment(Pos.CENTER);
 		final var context = new Context(stage, root);
 		InstanceSelectionPage.create(context);
+
+		stage.setTitle("VintageStory Launcher");
 
 		stage.setScene(scene);
 		stage.show();

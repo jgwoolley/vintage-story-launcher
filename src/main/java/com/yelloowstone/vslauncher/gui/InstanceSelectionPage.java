@@ -1,5 +1,6 @@
-package com.yelloowstone.vslauncher;
+package com.yelloowstone.vslauncher.gui;
 
+import com.yelloowstone.vslauncher.VintageStoryInstance;
 import javafx.beans.property.SimpleStringProperty;
 
 import javafx.scene.control.*;
@@ -42,10 +43,10 @@ public class InstanceSelectionPage {
         return versionCol;
     }
 
-    public static TableColumn<VintageStoryInstance, String> createLastLoginUserColumn() {
-        final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Last Login");
+    public static TableColumn<VintageStoryInstance, String> createLastLoginUserColumn(Context context) {
+        final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Player");
         versionCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getLastLoginUser()));
+                new SimpleStringProperty(data.getValue().getPlayer(context.getObjectMapper())));
 
         return versionCol;
     }
@@ -93,8 +94,8 @@ public class InstanceSelectionPage {
         final TableView<VintageStoryInstance> table = new TableView<>(context.getInstances());
 
         table.getColumns().add(createNameColumn());
-//        table.getColumns().add(createVersionColumn());
-//        table.getColumns().add(createLastLoginUserColumn());
+        table.getColumns().add(createVersionColumn());
+        table.getColumns().add(createLastLoginUserColumn(context));
 //        table.getColumns().add(createRuntimePathColumn());
 //        table.getColumns().add(createDataPathColumn());
         table.getColumns().add(createActionColumn(context));

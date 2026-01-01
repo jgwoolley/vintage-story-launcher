@@ -1,4 +1,4 @@
-package com.yelloowstone.vslauncher;
+package com.yelloowstone.vslauncher.gui;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;

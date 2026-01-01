@@ -1,5 +1,6 @@
-package com.yelloowstone.vslauncher;
+package com.yelloowstone.vslauncher.gui;
 
+import com.yelloowstone.vslauncher.VintageStoryInstance;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
