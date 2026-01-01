@@ -85,7 +85,18 @@ jobs:
         run: |
           jpackage --input package-in --dest output/ --name "VSLauncher-Mac-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type dmg --mac-package-identifier "com.yelloowstone.vslauncher" --mac-package-name "Vintage Story Launcher ${{ matrix.arch }}" --app-version "1.0.0"
 
-      - name: Upload Artifacts
+      # If you prefer not to use a 3rd party retry action, 
+      # simply duplicate the step with 'continue-on-error: true'
+      - name: Upload Artifacts (Attempt 1)
+        id: upload1
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: installers-${{ matrix.artifact-type }}
+          path: output/*
+
+      - name: Upload Artifacts (Retry)
+        if: steps.upload1.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: installers-${{ matrix.artifact-type }}
