@@ -1,0 +1,220 @@
+syntax = "proto3";
+package vintagestory;
+
+message AnimationPacket {
+   repeated int32 activeAnimationSpeeds = 1 [packed = false];
+   int32 activeAnimationSpeedsCount = 2;
+   int32 activeAnimationSpeedsLength = 3;
+   repeated int32 activeAnimations = 4 [packed = false];
+   int32 activeAnimationsCount = 5;
+   int32 activeAnimationsLength = 6;
+   int64 entityId = 7;
+}
+message BlockPos {
+   int32 X = 1;
+   int32 InternalY = 2;
+   int32 Z = 3;
+}
+message BulkAnimationPacket {
+   repeated AnimationPacket Packets = 1;
+}
+message Cuboidi {
+   int32 X1 = 1;
+   int32 Y1 = 2;
+   int32 Z1 = 3;
+   int32 X2 = 4;
+   int32 Y2 = 5;
+   int32 Z2 = 6;
+}
+message EntityTagPacket {
+   int64 EntityId = 1;
+   int64 TagsBitmask1 = 2;
+   int64 TagsBitmask2 = 3;
+}
+enum EnumBlockAccessFlags {
+   // this is a composite/flags enumeration
+   None = 0;
+   BuildOrBreak = 1;
+   Use = 2;
+   Traverse = 4;
+}
+enum EnumFreeMovAxisLock {
+   None = 0;
+   X = 1;
+   Y = 2;
+   Z = 3;
+}
+enum EnumGameMode {
+   Guest = 0;
+   Survival = 1;
+   Creative = 2;
+   Spectator = 3;
+}
+enum EnumPlayStyle {
+   WildernessSurvival = 0;
+   SurviveAndBuild = 1;
+   SurviveAndAutomate = 2;
+   CreativeBuilding = 3;
+}
+message GeneratedStructure {
+   string Code = 1;
+   string Group = 2;
+   Cuboidi Location = 3;
+   bool SuppressRivulets = 4;
+   bool SuppressTreesAndShrubs = 5;
+}
+message IntDataMap2D {
+   repeated int32 Data = 1;
+   int32 Size = 2;
+   int32 TopLeftPadding = 3;
+   int32 BottomRightPadding = 4;
+}
+message KeyValuePair_Vec2i_Single {
+   Vec2i Key = 1;
+   float Value = 2;
+}
+message LandClaim {
+   repeated Cuboidi Areas = 1;
+   int32 ProtectionLevel = 2;
+   int64 OwnedByEntityId = 3;
+   string OwnedByPlayerUid = 4;
+   uint32 OwnedByPlayerGroupUid = 5;
+   string LastKnownOwnerName = 6;
+   string Description = 7;
+   map<int32,EnumBlockAccessFlags> PermittedPlayerGroupIds = 8;
+   map<string,EnumBlockAccessFlags> PermittedPlayerUids = 9;
+   map<string,string> PermittedPlayerLastKnownPlayerName = 10;
+   bool AllowUseEveryone = 11;
+   bool AllowTraverseEveryone = 12;
+}
+message PlayerSpawnPos {
+   int32 x = 1;
+   int32 y = 2;
+   int32 z = 3;
+   float yaw = 4;
+   float pitch = 5;
+   float roll = 6;
+   int32 RemainingUses = 7;
+}
+message SaveGame {
+   int32 MapSizeX = 1;
+   int32 MapSizeY = 2;
+   int32 MapSizeZ = 3;
+   map<string,ServerWorldPlayerData> PlayerDataByUID = 4;
+   int32 Seed = 7;
+   int64 SimulationCurrentFrame = 8;
+   int64 LastEntityId = 10;
+   map<string,bytes> ModData = 11;
+   int64 TotalGameSeconds = 12;
+   string WorldName = 13;
+   int32 TotalSecondsPlayed = 14;
+   EnumPlayStyle WorldPlayStyle = 16;
+   string LastPlayed = 17;
+   string CreatedGameVersion = 18;
+   int32 GameTimeSpeed = 19;
+   int32 MiniDimensionsCreated = 20;
+   string LastSavedGameVersion = 21;
+   string CreatedByPlayerName = 22;
+   bool EntitySpawning = 23;
+   float HoursPerDay = 25;
+   int64 LastHerdId = 26;
+   repeated LandClaim LandClaims = 27;
+   map<string,float> TimeSpeedModifiers = 28;
+   string PlayStyle = 29;
+   string WorldType = 30;
+   bytes WorldConfigBytes = 31;
+   string PlayStyleLangCode = 32;
+   int32 LastBlockItemMappingVersion = 33;
+   string SavegameIdentifier = 34;
+   float CalendarSpeedMul = 35;
+   map<string,bool> RemappingsAppliedByCode = 36;
+   int32 HighestChunkdataVersion = 37;
+   int64 TotalGameSecondsStart = 38;
+   int32 CreatedWorldGenVersion = 39;
+   PlayerSpawnPos DefaultSpawn = 40;
+}
+message ServerChunk {
+   bytes blocksCompressed = 1;
+   bytes lightCompressed = 2;
+   bytes lightSatCompressed = 3;
+   int32 EntitiesCount = 5;
+   repeated bytes EntitiesSerialized = 6;
+   int32 BlockEntitiesCount = 7;
+   repeated bytes BlockEntitiesSerialized = 8;
+   map<string,bytes> moddata = 9;
+   repeated int32 lightPositions = 10 [packed = false];
+   map<string,bytes> ServerSideModdata = 11;
+   string GameVersionCreated = 12;
+   bool EmptyBeforeSave = 13;
+   bytes DecorsSerialized = 14;
+   int32 savedCompressionVersion = 15;
+   bytes liquidsCompressed = 16;
+   int32 BlocksPlaced = 17;
+   int32 BlocksRemoved = 18;
+}
+message ServerMapChunk {
+   map<string,bytes> Moddata = 1;
+   repeated uint32 RainHeightMap = 3 [packed = false];
+   int32 currentpass = 4;
+   repeated uint32 TopRockIdMapOld = 6 [packed = false];
+   repeated uint32 WorldGenTerrainHeightMap = 7 [packed = false];
+   repeated BlockPos ScheduledBlockUpdates = 8;
+   repeated BlockPos NewBlockEntities = 9;
+   uint32 YMax = 10;
+   bytes CaveHeightDistort = 11;
+   repeated uint32 SedimentaryThicknessMap = 12 [packed = false];
+   repeated int32 TopRockIdMap = 13 [packed = false];
+   repeated KeyValuePair_Vec2i_Single SnowAccum = 15;
+   int32 WorldGenVersion = 16;
+   repeated Vec4i ScheduledBlockLightUpdates = 17;
+}
+message ServerMapRegion {
+   IntDataMap2D LandformMap = 1;
+   IntDataMap2D ForestMap = 2;
+   IntDataMap2D ClimateMap = 3;
+   IntDataMap2D GeologicProvinceMap = 4;
+   IntDataMap2D BushMap = 5;
+   IntDataMap2D FlowerMap = 6;
+   map<string,IntDataMap2D> OreMaps = 8;
+   map<string,bytes> ModData = 9;
+   map<string,IntDataMap2D> ModMaps = 10;
+   repeated GeneratedStructure GeneratedStructures = 11;
+   repeated IntDataMap2D RockStrata = 12;
+   IntDataMap2D OreMapVerticalDistortTop = 13;
+   IntDataMap2D OreMapVerticalDistortBottom = 14;
+   IntDataMap2D BeachMap = 15;
+   map<string,IntDataMap2D> BlockPatchMaps = 16;
+   IntDataMap2D UpheavelMap = 17;
+   IntDataMap2D OceanMap = 18;
+   int32 worldgenVersion = 19;
+}
+message ServerWorldPlayerData {
+   string PlayerUID = 1;
+   map<string,bytes> inventoriesSerialized = 2;
+   bytes EntityPlayerSerialized = 3;
+   EnumGameMode GameMode = 4;
+   float MoveSpeedMultiplier = 5;
+   bool FreeMove = 6;
+   bool NoClip = 7;
+   int32 Viewdistance = 8;
+   int32 selectedHotbarslot = 9;
+   EnumFreeMovAxisLock freeMovePlaneLock = 10;
+   float PickingRange = 11;
+   bool areaSelectionMode = 12;
+   bool didSelectSkin = 13;
+   PlayerSpawnPos spawnPosition = 14;
+   map<string,bytes> ModData = 15;
+   float PreviousPickingRange = 16;
+   int32 Deaths = 17;
+   bool RenderMetaBlocks = 18;
+}
+message Vec2i {
+   int32 X = 1;
+   int32 Y = 2;
+}
+message Vec4i {
+   int32 X = 1;
+   int32 Y = 2;
+   int32 Z = 3;
+   int32 W = 4;
+}

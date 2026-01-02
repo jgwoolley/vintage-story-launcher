@@ -1,9 +1,5 @@
 package com.yelloowstone.vslauncher;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.ObjectMapper;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -13,6 +9,14 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import tools.jackson.databind.ObjectMapper;
 
 public class VintageStoryInstance {
     private final String name;
@@ -33,16 +37,22 @@ public class VintageStoryInstance {
         return this.name;
     }
 
+    public File getDataPath() {
+        return this.dataPath;
+    }
+
+    public File getRuntimePath() {
+        return runtimePath;
+    }
+    
+    @JsonIgnore
     public LocalDateTime getLastOpen() {
         final File src = new File(dataPath, "clientsettings.json");
         final Instant instant = Instant.ofEpochMilli(src.lastModified());
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
-
-    public File getDataPath() {
-        return this.dataPath;
-    }
-
+    
+    @JsonIgnore
     public String getVersion() {
         final File assetsPath = new File(this.runtimePath,"assets");
         if(!assetsPath.isDirectory()) {
@@ -62,29 +72,24 @@ public class VintageStoryInstance {
         return files[0].getName().substring("version-".length(), files[0].getName().length() - ".txt".length());
     }
 
-    public File getRuntimePath() {
-        return runtimePath;
-    }
-
     @Override
     public String toString() {
         return this.getName();
     }
 
-    public String getLastLoginUser() {
-        return null;
-    }
-
+    @JsonIgnore
     public static boolean isWindows() {
         final String OS = System.getProperty("os.name").toLowerCase();
         return OS.contains("win");
     }
 
+    @JsonIgnore
     public static boolean isMac() {
         final String OS = System.getProperty("os.name").toLowerCase();
         return OS.contains("mac");
     }
 
+    @JsonIgnore
     public static boolean isUnix() {
         final String OS = System.getProperty("os.name").toLowerCase();
         return OS.contains("nix") || OS.contains("nux") || OS.contains("aix");
@@ -186,12 +191,34 @@ public class VintageStoryInstance {
         }
     }
 
+    @JsonIgnore
     public ClientSettingsFile getClientSettingsFile(ObjectMapper objectMapper) {
         final File src = new File(dataPath, "clientsettings.json");
         return objectMapper.readValue(src, ClientSettingsFile.class);
     }
 
+    @JsonIgnore
     public String getPlayer(ObjectMapper objectMapper) {
         return getClientSettingsFile(objectMapper).getStringSettings().get("playername");
+    }
+    
+    @JsonIgnore
+    public ObservableList<VintageStoryMap> getMaps() {
+        final ObservableList<VintageStoryMap> result = FXCollections.observableArrayList();
+        final File mapsPath = new File(this.getDataPath(), "Maps");
+        
+        final File[] files = mapsPath.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File file, String name) {
+				return name.endsWith(".db");
+			}
+        });
+        
+        for(final File file: files) {
+			result.add(new VintageStoryMap(file));
+        }
+                
+        return result;
+
     }
 }

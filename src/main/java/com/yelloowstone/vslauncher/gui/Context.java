@@ -12,6 +12,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -84,15 +85,26 @@ public class Context {
 
         // TODO: https://wiki.vintagestory.at/Vintagestory_folder
 
+        final File localShareFile = new File(userHomePath, "/.local/share/");
+        
         for(final File file: new File[] {
                 new File("/Applications/Vintage Story.app"),
                 new File(userHomePath, "/AppData/Roaming/Vintagestory"),
-                new File(userHomePath, "/.local/share/vintagestory"),
+                new File(localShareFile, "/vintagestory"),
         }) {
-            if(file.exists()) {
-                runtimeDirs.add(file);
-            }
+            runtimeDirs.add(file);
         }
+        
+        for(File file: localShareFile.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File file, String filename) {
+				return filename.startsWith("vintagestory.bak");
+			}
+        	
+        })) {
+            runtimeDirs.add(file);
+        }
+        
 
         return FXCollections.observableArrayList(runtimeDirs);
     }
