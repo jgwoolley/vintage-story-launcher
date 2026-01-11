@@ -68,7 +68,7 @@ jobs:
 
       # --- WINDOWS ---
       - name: Package Windows
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/v')
         shell: pwsh
         run: |
           jpackage --input package-in `
@@ -94,7 +94,7 @@ jobs:
 
       # --- LINUX ---
       - name: Package Linux
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
         run: |
           sudo apt-get update
           sudo apt-get install -y rpm fakeroot
@@ -127,7 +127,7 @@ jobs:
 
       # --- MACOS ---
       - name: Package MacOS
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'macos') && startsWith(github.ref, 'refs/tags/v')
 
         run: |
           jpackage --input package-in \
