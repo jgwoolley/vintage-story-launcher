@@ -189,3 +189,29 @@ jobs:
         run: |
           echo "One or more builds failed. Check the logs above."
           exit 1
+  
+  update-landing-page:
+      name: Update Download Page
+      needs: release
+      runs-on: ubuntu-latest
+      if: startsWith(github.ref, 'refs/tags/')
+      permissions:
+        contents: write
+      steps:
+        - name: Checkout Code
+          uses: actions/checkout@v4
+
+        - name: Stage Web Files
+          run: |
+            # Create a temporary directory for the website content
+            mkdir -p public
+            # Copy only what you want to deploy
+            cp index.html public/
+            cp -r icons/ public/
+
+        - name: Deploy to GitHub Pages
+          uses: peaceiris/actions-gh-pages@v4
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: ./public # Only files in the 'public' folder will be uploaded
+            publish_branch: gh-pages
