@@ -68,7 +68,7 @@ jobs:
 
       # --- WINDOWS ---
       - name: Package Windows
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
         shell: pwsh
         run: |
           jpackage --input package-in `
@@ -127,7 +127,8 @@ jobs:
 
       # --- MACOS ---
       - name: Package MacOS
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'macos') && startsWith(github.ref, 'refs/tags/')
+
         run: |
           jpackage --input package-in \
             --dest output/ \
