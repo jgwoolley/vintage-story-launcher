@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Architecture Checker</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: "#f4f40";
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h2 { margin-top: 0; color: #333; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .label { font-weight: bold; color: #666; }
+        .value { color: #007bff; font-family: monospace; }
+        .fallback-note {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 15px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>System Information</h2>
+    
+    <div class="info-row">
+        <span class="label">Operating System:</span>
+        <span id="os" class="value">Detecting...</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="label">Architecture:</span>
+        <span id="arch" class="value">Detecting...</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="label">Bitness:</span>
+        <span id="bitness" class="value">Detecting...</span>
+    </div>
+
+    <p id="method-note" class="fallback-note"></p>
+</div>
+
+<script>
+    async function getSystemInfo() {
+        const osEl = document.getElementById('os');
+        const archEl = document.getElementById('arch');
+        const bitnessEl = document.getElementById('bitness');
+        const noteEl = document.getElementById('method-note');
+
+        // 1. Attempt Modern Client Hints API
+        if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+            try {
+                const hints = await navigator.userAgentData.getHighEntropyValues([
+                    'architecture', 
+                    'bitness', 
+                    'platform', 
+                    'platformVersion'
+                ]);
+                
+                osEl.innerText = hints.platform || "Unknown";
+                archEl.innerText = hints.architecture || "Unknown";
+                bitnessEl.innerText = hints.bitness ? hints.bitness + "-bit" : "Unknown";
+                noteEl.innerText = "Used high-accuracy Client Hints API.";
+                return;
+            } catch (e) {
+                console.error("Client Hints failed, falling back...", e);
+            }
+        }
+
+        // 2. Fallback to User-Agent Parsing
+        noteEl.innerText = "Used legacy User-Agent parsing (less precise).";
+        const ua = navigator.userAgent;
+        
+        // Detect OS
+        if (ua.indexOf("Win") !== -1) osEl.innerText = "Windows";
+        else if (ua.indexOf("Mac") !== -1) osEl.innerText = "MacOS";
+        else if (ua.indexOf("Linux") !== -1) osEl.innerText = "Linux";
+        else if (ua.indexOf("Android") !== -1) osEl.innerText = "Android";
+        else if (ua.indexOf("like Mac") !== -1) osEl.innerText = "iOS";
+        else osEl.innerText = "Unknown OS";
+
+        // Detect Architecture/Bitness
+        if (ua.includes("x86_64") || ua.includes("x64") || ua.includes("Win64")) {
+            archEl.innerText = "x86";
+            bitnessEl.innerText = "64-bit";
+        } else if (ua.includes("arm") || ua.includes("aarch64")) {
+            archEl.innerText = "ARM";
+            bitnessEl.innerText = "Unknown";
+        } else {
+            archEl.innerText = "Unknown";
+            bitnessEl.innerText = "Unknown";
+        }
+    }
+
+    getSystemInfo();
+</script>
+
+</body>
+</html>
