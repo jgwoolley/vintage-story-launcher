@@ -10,6 +10,7 @@ jobs:
   build:
     name: Build on ${{ matrix.os }} (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -68,30 +69,33 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          jpackage --input package-in \
-            --dest output/ \
-            --name "VSLauncher-Win-${{ matrix.arch }}" \
-            --main-jar ${{ env.JAR_NAME }} \
-            --main-class com.yelloowstone.vslauncher.Launcher \
-            --type msi \
-            --win-dir-chooser \
-            --win-shortcut \
-            --win-menu \
+          jpackage --input package-in `
+            --dest output/ `
+            --name "VSLauncher-Win-${{ matrix.arch }}" `
+            --main-jar ${{ env.JAR_NAME }} `
+            --main-class com.yelloowstone.vslauncher.Launcher `
+            --type msi `
+            --win-dir-chooser `
+            --win-shortcut `
+            --win-menu `
             --icon icons/favicon.ico
-          jpackage --input package-in \
-            --dest output/portable/ \
-            --name "VSLauncher-Portable" \
-            --main-jar ${{ env.JAR_NAME }} \
-            --main-class com.yelloowstone.vslauncher.Launcher \
-            --type app-image \
+          
+          jpackage --input package-in `
+            --dest output/portable/ `
+            --name "VSLauncher-Portable" `
+            --main-jar ${{ env.JAR_NAME }} `
+            --main-class com.yelloowstone.vslauncher.Launcher `
+            --type app-image `
             --icon icons/favicon.ico
+          
           Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-Win-${{ matrix.arch }}-Portable.zip"
 
       # --- LINUX ---
       - name: Package Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update && sudo apt-get install -y rpm
+          sudo apt-get update
+          sudo apt-get install -y rpm fakeroot
           
           mkdir -p linux-resources
           cp icons/icon-128.png linux-resources/vslauncher-x64.png
@@ -154,12 +158,13 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: always() && startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           path: ./all-installers
           merge-multiple: true
@@ -175,3 +180,12 @@ jobs:
             ./all-installers/*.dmg
             ./all-installers/*.jar
           generate_release_notes: true
+
+      # --- THE FAIL GATE ---
+      # This step checks if any part of the 'build' job was NOT a success.
+      # If one failed, this step fails, making the overall workflow run "Red".
+      - name: Check build status for failure
+        if: contains(needs.build.result, 'failure') || contains(needs.build.result, 'cancelled')
+        run: |
+          echo "One or more builds failed. Check the logs above."
+          exit 1
