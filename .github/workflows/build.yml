@@ -149,13 +149,15 @@ jobs:
         with:
           name: installers-${{ matrix.artifact-type }}
           path: output/*
-
+          retention-days: ${{ startsWith(github.ref, 'refs/tags/') && 7 || 1 }}
+      
       - name: Upload Artifacts (Retry)
         if: steps.upload1.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: installers-${{ matrix.artifact-type }}
           path: output/*
+          retention-days: ${{ startsWith(github.ref, 'refs/tags/') && 7 || 1 }}
 
   release:
     name: Create Release
@@ -192,3 +194,27 @@ jobs:
         run: |
           echo "One or more builds failed. Check the logs above."
           exit 1
+
+  cleanup:
+    name: Cleanup Old Releases
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Delete older releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get the list of release tags, skip the first 5, and delete the rest
+          RELEASES_TO_DELETE=$(gh release list --limit 100 | awk 'NR > 5 {print $3}')
+          
+          if [ -z "$RELEASES_TO_DELETE" ]; then
+            echo "No old releases to delete."
+          else
+            for TAG in $RELEASES_TO_DELETE; do
+              echo "Deleting release and tag: $TAG"
+              gh release delete "$TAG" --yes --cleanup-tag
+            done
+          fi
