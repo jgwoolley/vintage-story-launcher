@@ -68,8 +68,23 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          jpackage --input package-in --dest output/ --name "VSLauncher-Win-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type msi --win-dir-chooser --win-shortcut --win-menu --icon icons/favicon.ico
-          jpackage --input package-in --dest output/portable/ --name "VSLauncher-Portable" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type app-image --icon icons/favicon.ico
+          jpackage --input package-in \
+            --dest output/ \
+            --name "VSLauncher-Win-${{ matrix.arch }}" \
+            --main-jar ${{ env.JAR_NAME }} \
+            --main-class com.yelloowstone.vslauncher.Launcher \
+            --type msi \
+            --win-dir-chooser \
+            --win-shortcut \
+            --win-menu \
+            --icon icons/favicon.ico
+          jpackage --input package-in \
+            --dest output/portable/ \
+            --name "VSLauncher-Portable" \
+            --main-jar ${{ env.JAR_NAME }} \
+            --main-class com.yelloowstone.vslauncher.Launcher \
+            --type app-image \
+            --icon icons/favicon.ico
           Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-Win-${{ matrix.arch }}-Portable.zip"
 
       # --- LINUX ---
@@ -77,14 +92,46 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update && sudo apt-get install -y rpm
-          jpackage --input package-in --dest output/ --name "vslauncher-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type deb --linux-shortcut --linux-menu-group "Game" --icon icons/icon-128.png
-          jpackage --input package-in --dest output/ --name "vslauncher-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type rpm --icon icons/icon-128.png
+          
+          mkdir -p linux-resources
+          cp icons/icon-128.png linux-resources/vslauncher-x64.png
+          cp icons/icon-128.png linux-resources/vslauncher-arm64.png
+
+          jpackage --input package-in \
+            --dest output/ \
+            --name "vslauncher-${{ matrix.arch }}" \
+            --main-jar ${{ env.JAR_NAME }} \
+            --main-class com.yelloowstone.vslauncher.Launcher \
+            --type deb \
+            --linux-shortcut \
+            --linux-menu-group "Game" \
+            --linux-app-category "Game" \
+            --resource-dir linux-resources \
+            --icon icons/icon-128.png
+          
+          jpackage --input package-in \
+            --dest output/ \
+            --name "vslauncher-${{ matrix.arch }}" \
+            --main-jar ${{ env.JAR_NAME }} \
+            --main-class com.yelloowstone.vslauncher.Launcher \
+            --type rpm \
+            --resource-dir linux-resources \
+            --icon icons/icon-128.png
 
       # --- MACOS ---
       - name: Package MacOS
         if: startsWith(matrix.os, 'macos')
         run: |
-          jpackage --input package-in --dest output/ --name "VSLauncher-Mac-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type dmg --mac-package-identifier "com.yelloowstone.vslauncher" --mac-package-name "Vintage Story Launcher ${{ matrix.arch }}" --app-version "1.0.0" --icon icons/app-icon.icns 
+          jpackage --input package-in \
+            --dest output/ \
+            --name "VSLauncher-Mac-${{ matrix.arch }}" \
+            --main-jar ${{ env.JAR_NAME }} \
+            --main-class com.yelloowstone.vslauncher.Launcher \
+            --type dmg \
+            --mac-package-identifier "com.yelloowstone.vslauncher" \
+            --mac-package-name "Vintage Story Launcher ${{ matrix.arch }}" \
+            --app-version "1.0.0" \
+            --icon icons/app-icon.icns 
 
       # If you prefer not to use a 3rd party retry action, 
       # simply duplicate the step with 'continue-on-error: true'

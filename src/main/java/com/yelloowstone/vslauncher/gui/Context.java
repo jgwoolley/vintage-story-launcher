@@ -105,7 +105,7 @@ public class Context {
         	
         });
         
-        if(localShareFile != null) {
+        if(backupPaths != null) {
             for(File file: backupPaths) {
                 runtimeDirs.add(file);
             }
