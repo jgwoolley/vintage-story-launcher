@@ -3,11 +3,13 @@ name: Deploy GitHub Pages
 on:
   push:
     branches:
-      - main  # or your default branch
+      - main
+    tags:
+      - 'v*'
     paths:
       - 'index.html'
       - 'icons/**'
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,10 +21,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Stage Web Files
+      - name: Minify and Stage Files
         run: |
           mkdir -p public
-          cp index.html public/
+          # Simple regex-based minification (removes newlines and extra spaces)
+          tr -d '\n\r' < index.html | sed 's/  */ /g' > public/index.html
           cp -r icons/ public/
 
       - name: Deploy to GitHub Pages
@@ -31,3 +34,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           publish_branch: gh-pages
+          # This ensures the action doesn't fail if there's no change
+          allow_empty_commit: true
