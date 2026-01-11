@@ -2,6 +2,8 @@ name: Build and Release Native Installers
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -97,13 +99,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y rpm fakeroot
           
-          mkdir -p linux-resources
-          cp icons/icon-128.png linux-resources/vslauncher-x64.png
-          cp icons/icon-128.png linux-resources/vslauncher-arm64.png
+          APP_NAME="vslauncher-${{ matrix.arch }}"
 
+          mkdir -p linux-resources
+          cp icons/icon-128.png "linux-resources/vslauncher-${APP_NAME}.png"
+          
           jpackage --input package-in \
             --dest output/ \
-            --name "vslauncher-${{ matrix.arch }}" \
+            --name "${APP_NAME}" \
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type deb \
@@ -115,7 +118,7 @@ jobs:
           
           jpackage --input package-in \
             --dest output/ \
-            --name "vslauncher-${{ matrix.arch }}" \
+            --name "${APP_NAME}" \
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type rpm \
