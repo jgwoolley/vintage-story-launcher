@@ -9,6 +9,7 @@ on:
     paths:
       - 'index.html'
       - 'icons/**'
+      - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
