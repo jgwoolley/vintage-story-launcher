@@ -68,7 +68,7 @@ jobs:
 
       # --- WINDOWS ---
       - name: Package Windows
-        if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
+        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
           jpackage --input package-in `
@@ -102,7 +102,7 @@ jobs:
           APP_NAME="vslauncher-${{ matrix.arch }}"
 
           mkdir -p linux-resources
-          cp icons/icon-128.png "linux-resources/vslauncher-${APP_NAME}.png"
+          cp icons/icon-128.png "linux-resources/${APP_NAME}.png"
           
           jpackage --input package-in \
             --dest output/ \
@@ -122,12 +122,12 @@ jobs:
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type rpm \
+            --linux-shortcut \
             --resource-dir linux-resources \
-            --icon icons/icon-128.png
 
       # --- MACOS ---
       - name: Package MacOS
-        if: startsWith(matrix.os, 'macos') && startsWith(github.ref, 'refs/tags/')
+        if: startsWith(matrix.os, 'macos')
 
         run: |
           jpackage --input package-in \
