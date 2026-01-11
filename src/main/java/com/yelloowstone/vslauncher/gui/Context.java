@@ -92,19 +92,24 @@ public class Context {
                 new File(userHomePath, "/AppData/Roaming/Vintagestory"),
                 new File(localShareFile, "/vintagestory"),
         }) {
-            runtimeDirs.add(file);
+        	if(file.exists()) {
+                runtimeDirs.add(file);
+        	}
         }
         
-        for(File file: localShareFile.listFiles(new FilenameFilter() {
+        final File[] backupPaths = localShareFile.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File file, String filename) {
 				return filename.startsWith("vintagestory.bak");
 			}
         	
-        })) {
-            runtimeDirs.add(file);
-        }
+        });
         
+        if(localShareFile != null) {
+            for(File file: backupPaths) {
+                runtimeDirs.add(file);
+            }
+        }
 
         return FXCollections.observableArrayList(runtimeDirs);
     }
