@@ -78,7 +78,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y rpm
           jpackage --input package-in --dest output/ --name "vslauncher-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type deb --linux-shortcut --linux-menu-group "Game" --icon icons/icon-128.png
-          jpackage --input package-in --dest output/ --name "vslauncher-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type rpm --icon icon-128.png
+          jpackage --input package-in --dest output/ --name "vslauncher-${{ matrix.arch }}" --main-jar ${{ env.JAR_NAME }} --main-class com.yelloowstone.vslauncher.Launcher --type rpm --icon icons/icon-128.png
 
       # --- MACOS ---
       - name: Package MacOS
