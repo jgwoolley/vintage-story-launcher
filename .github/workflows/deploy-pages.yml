@@ -33,6 +33,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Stage Files
+        run: |
+          mkdir -p public
+          cp index.html public/
+          cp -r icons/ public/
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
