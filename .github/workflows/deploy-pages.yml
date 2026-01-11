@@ -11,11 +11,22 @@ on:
       - 'icons/**'
   workflow_dispatch:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -24,15 +35,18 @@ jobs:
       - name: Minify and Stage Files
         run: |
           mkdir -p public
-          # Simple regex-based minification (removes newlines and extra spaces)
+          # Basic minification: remove newlines and collapse spaces
           tr -d '\n\r' < index.html | sed 's/  */ /g' > public/index.html
           cp -r icons/ public/
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          publish_branch: gh-pages
-          # This ensures the action doesn't fail if there's no change
-          allow_empty_commit: true
+          path: './public'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
