@@ -32,13 +32,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Minify and Stage Files
-        run: |
-          mkdir -p public
-          # Basic minification: remove newlines and collapse spaces
-          tr -d '\n\r' < index.html | sed 's/  */ /g' > public/index.html
-          cp -r icons/ public/
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
