@@ -54,7 +54,7 @@ jobs:
       - name: Extract Maven Values
         shell: bash
         run: |
-          JAR_NAME=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)
+          JAR_NAME=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout).jar
           echo "JAR_NAME=$JAR_NAME" >> $GITHUB_ENV
 
           APP_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -85,7 +85,7 @@ jobs:
             --win-dir-chooser `
             --win-shortcut `
             --win-menu `
-            --app-version "${{ env.APP_VERSION }}" \
+            --app-version "${{ env.APP_VERSION }}" `
             --icon icons/favicon.ico
           
           jpackage --input package-in `
@@ -94,11 +94,10 @@ jobs:
             --main-jar ${{ env.JAR_NAME }} `
             --main-class com.yelloowstone.vslauncher.Launcher `
             --type app-image `
-            --app-version "${{ env.APP_VERSION }}" \
+            --app-version "${{ env.APP_VERSION }}" `
             --icon icons/favicon.ico
           
-          Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-${{ matrix.os }}${{ matrix.arch }}-Portable.zip"
-
+          Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-${{ matrix.os }}-${{ matrix.arch }}-Portable.zip"
       # --- LINUX ---
       - name: Package Linux
         if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
@@ -135,6 +134,16 @@ jobs:
             --linux-shortcut \
             --app-version "${{ env.APP_VERSION }}" \
             --resource-dir linux-resources \
+
+          jpackage --input package-in \
+            --dest output/portable/ \
+            --name "VSLauncher-Linux-Portable" \
+            --main-jar ${{ env.JAR_NAME }} \
+            --main-class com.yelloowstone.vslauncher.Launcher \
+            --type app-image \
+            --app-version "${{ env.APP_VERSION }}"
+
+          tar -czf "output/VSLauncher-${{ matrix.os }}-${{ matrix.arch }}-Portable.tar.gz" -C output/portable VSLauncher-Linux-Portable
 
       # --- MACOS ---
       - name: Package MacOS
@@ -174,7 +183,7 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
-    if: always() && startsWith(github.ref, 'refs/tags/')
+    if: !cancelled() && startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     steps:
@@ -191,6 +200,7 @@ jobs:
           files: |
             ./all-installers/*.msi
             ./all-installers/*.zip
+            ./all-installers/*.tar.gz
             ./all-installers/*.deb
             ./all-installers/*.rpm
             ./all-installers/*.dmg
@@ -225,7 +235,8 @@ jobs:
             echo "No old releases to delete."
           else
             for TAG in $RELEASES_TO_DELETE; do
-              echo "Deleting release and tag: $TAG"
-              gh release delete "$TAG" --yes --cleanup-tag
+              echo "Deleting release entry only for: $TAG"
+              # Removing --cleanup-tag ensures the Git tag is preserved
+              gh release delete "$TAG" --yes
             done
           fi
