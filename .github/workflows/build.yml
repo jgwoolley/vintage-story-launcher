@@ -69,7 +69,7 @@ jobs:
           mkdir -p package-in
           cp "target/${{ env.JAR_NAME }}" package-in/
           mkdir -p output
-          cp "target/${{ env.JAR_NAME }}" "output/VSLauncher-${{ matrix.os }}${{ matrix.arch }}.jar"
+          cp "target/${{ env.JAR_NAME }}" "output/VSLauncher-${{ artifact-type }}.jar"
 
       # --- WINDOWS ---
       - name: Package Windows
@@ -78,7 +78,7 @@ jobs:
         run: |
           jpackage --input package-in `
             --dest output/ `
-            --name "VSLauncher-${{ matrix.os }}-${{ matrix.arch }}" `
+            --name "VSLauncher-${{ artifact-type }}" `
             --main-jar ${{ env.JAR_NAME }} `
             --main-class com.yelloowstone.vslauncher.Launcher `
             --type msi `
@@ -90,14 +90,14 @@ jobs:
           
           jpackage --input package-in `
             --dest output/portable/ `
-            --name "VSLauncher-${{ matrix.os }}-${{ matrix.arch }}" `
+            --name "VSLauncher-${{ artifact-type }}" `
             --main-jar ${{ env.JAR_NAME }} `
             --main-class com.yelloowstone.vslauncher.Launcher `
             --type app-image `
             --app-version "${{ env.APP_VERSION }}" `
             --icon icons/favicon.ico
           
-          Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-${{ matrix.os }}-${{ matrix.arch }}-Portable.zip"
+          Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-${{ artifact-type }}-Portable.zip"
       # --- LINUX ---
       - name: Package Linux
         if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
@@ -143,7 +143,7 @@ jobs:
             --type app-image \
             --app-version "${{ env.APP_VERSION }}"
 
-          tar -czf "output/VSLauncher-${{ matrix.os }}-${{ matrix.arch }}-Portable.tar.gz" -C output/portable VSLauncher-Linux-Portable
+          tar -czf "output/VSLauncher-${{ artifact-type }}-Portable.tar.gz" -C output/portable VSLauncher-Linux-Portable
 
       # --- MACOS ---
       - name: Package MacOS
@@ -151,7 +151,7 @@ jobs:
         run: |
           jpackage --input package-in \
             --dest output/ \
-            --name "VSLauncher-${{ matrix.os }}-${{ matrix.arch }}" \
+            --name "VSLauncher-${{ artifact-type }}" \
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type dmg \
