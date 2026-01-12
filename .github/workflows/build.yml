@@ -59,6 +59,8 @@ jobs:
           APP_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
+          echo "FINAL_NAME=${FINAL_NAME};APP_VERSION=${APP_VERSION}"
+
       - name: Prepare Packaging Folder
         shell: bash
         run: |
