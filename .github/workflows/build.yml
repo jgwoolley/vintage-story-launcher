@@ -64,7 +64,7 @@ jobs:
           APP_NAME=VSLauncher
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
 
-          echo "APP_NAME=${APP_NAME};JAR_NAME=${JAR_NAME};APP_VERSION=${APP_VERSION}"
+          echo "APP_NAME=${APP_NAME};JAR_NAME=${JAR_NAME};RAW_VERSION=${RAW_VERSION};APP_VERSION=${CLEAN_VERSION}"
 
 
       - name: Prepare Packaging Folder
@@ -149,7 +149,7 @@ jobs:
 
           find output/ -maxdepth 1 -name "vslauncher*.deb" -exec mv {} output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.deb \;
           find output/ -maxdepth 1 -name "vslauncher*.rpm" -exec mv {} output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.rpm \;
-          
+
           tar -czf "output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}-Portable.tar.gz" -C output/portable ${{ env.APP_NAME }}
 
       # --- MACOS ---

@@ -228,25 +228,11 @@
         }
 
         function determine_os(name) {
-            if(name.endsWith('.msi')){
-                return '🪟 Windows';
-            } else if(name.endsWith('.exe')){
-                return '🪟 Windows';
-            } else if(name.endsWith('.zip')){
-                return '🪟 Windows';
-            } else if(name.endsWith('.deb')) {
-                return '🐧 Ubuntu';
-            } else if(name.endsWith('.rpm')) {
-                return '🐧 RedHat';
-            } else if(name.endsWith('.dmg')) {
+            if(name.includes('-macos-')) {
                 return '🍎 MacOS';
-            } else if(name.includes('macos')) {
-                return '🍎 MacOS';
-            } else if(name.includes('Win')) {
+            } else if(name.includes('-windows-')) {
                 return '🪟 Windows';
-            } else if(name.includes('windows')) {
-                return '🪟 Windows';
-            } else if(name.includes('linux')) {
+            } else if(name.includes('-linux-')) {
                 return '🐧 Linux';
             }
 
@@ -255,10 +241,10 @@
 
         function determine_platform(name){
             const os = determine_os(name);
-            if(name.includes('x64')) {
+            if(name.includes('-x64.')) {
                 return `${os}/x64`;
             }
-            if(name.includes('arm64')) {
+            if(name.includes('-arm64.')) {
                 return `${os}/arm64`;
             }
             return os;
