@@ -227,6 +227,43 @@
             setTheme('dark');
         }
 
+        function determine_os(name) {
+            if(name.endsWith('.msi')){
+                return '🪟 Windows';
+            } else if(name.endsWith('.exe')){
+                return '🪟 Windows';
+            } else if(name.endsWith('.zip')){
+                return '🪟 Windows';
+            } else if(name.endsWith('.deb')) {
+                return '🐧 Ubuntu';
+            } else if(name.endsWith('.rpm')) {
+                return '🐧 RedHat';
+            } else if(name.endsWith('.dmg')) {
+                return '🍎 MacOS';
+            } else if(name.includes('macos')) {
+                return '🍎 MacOS';
+            } else if(name.includes('Win')) {
+                return '🪟 Windows';
+            } else if(name.includes('windows')) {
+                return '🪟 Windows';
+            } else if(name.includes('linux')) {
+                return '🐧 Linux';
+            }
+
+            return 'Unknown';
+        }
+
+        function determine_platform(name){
+            const os = determine_os(name);
+            if(name.includes('x64')) {
+                return `${os}/x64`;
+            }
+            if(name.includes('arm64')) {
+                return `${os}/arm64`;
+            }
+            return os;
+        }
+
         // --- Download Logic ---
         async function init() {
             const container = document.getElementById('recommended-container');
@@ -283,7 +320,15 @@
                     <div style="margin: 20px 0;">
                         <a href="${best.browser_download_url}" class="btn">Download ${best.name}</a>
                     </div>
-                    <small style="color: var(--text-light)">Version ${release.tag_name} • ${(best.size / 1048576).toFixed(1)} MB</small>
+                    <small style="color: var(--text-light)">${new Date(release.published_at).toLocaleString(undefined, {
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit',
+                        hour12: true,
+                    })} • ${release.tag_name} • ${(best.size / 1048576).toFixed(1)} MB</small>
                 `;
 
                 if (release.body) {
@@ -291,12 +336,17 @@
                     document.getElementById('release-notes-section').style.display = 'block';
                 }
 
-                listContainer.innerHTML = release.assets.map(a => `
+
+                listContainer.innerHTML = release.assets.map(a => {
+                    const size = `${(a.size / 1048576).toFixed(1)} MB`;
+
+                    return `
                     <div class="asset-item">
                         <a href="${a.browser_download_url}" style="color: var(--accent); font-weight: 600; text-decoration: none;">${a.name}</a>
-                        <span class="tag">${(a.size / 1048576).toFixed(1)} MB</span>
+                        <span class="tag">${determine_platform(a.name)}</span>
                     </div>
-                `).join('');
+                `
+                }).join('');
 
             } catch (err) {
                 container.innerHTML = `<p>Error loading releases. Please visit <a href="https://github.com/${REPO}/releases">GitHub</a>.</p>`;
