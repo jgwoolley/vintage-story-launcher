@@ -149,9 +149,15 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center;
+            gap: 10px;
         }
 
-        .tag { font-size: 0.8em; color: var(--text-light); background: var(--tag-bg); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--tag-border); }
+        .asset-info { display: flex; flex-direction: column; gap: 4px; }
+        .asset-actions { display: flex; align-items: center; gap: 12px; }
+
+        .tag { font-size: 0.8em; color: var(--text-light); background: var(--tag-bg); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--tag-border); white-space: nowrap; }
+        .sha-link { font-size: 0.75rem; color: var(--text-light); text-decoration: none; }
+        .sha-link:hover { color: var(--accent); text-decoration: underline; }
         
         .loader { 
             border: 3px solid var(--border); 
@@ -165,6 +171,8 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @media (max-width: 600px) { 
             .header-layout { flex-direction: column; align-items: center; text-align: center; } 
+            .asset-item { flex-direction: column; align-items: flex-start; }
+            .asset-actions { width: 100%; justify-content: space-between; margin-top: 8px; }
         }
     </style>
 </head>
@@ -228,25 +236,16 @@
         }
 
         function determine_os(name) {
-            if(name.includes('-macos-')) {
-                return '🍎 MacOS';
-            } else if(name.includes('-windows-')) {
-                return '🪟 Windows';
-            } else if(name.includes('-linux-')) {
-                return '🐧 Linux';
-            }
-
+            if(name.includes('-macos-')) return '🍎 MacOS';
+            if(name.includes('-windows-')) return '🪟 Windows';
+            if(name.includes('-linux-')) return '🐧 Linux';
             return 'Unknown';
         }
 
         function determine_platform(name){
             const os = determine_os(name);
-            if(name.includes('-x64.')) {
-                return `${os}/x64`;
-            }
-            if(name.includes('-arm64.')) {
-                return `${os}/arm64`;
-            }
+            if(name.includes('x64')) return `${os}/x64`;
+            if(name.includes('arm64')) return `${os}/arm64`;
             return os;
         }
 
@@ -262,7 +261,6 @@
                 const ua = navigator.userAgent.toLowerCase();
                 const platform = navigator.platform.toLowerCase();
 
-                // OS/Distro detection
                 let os = 'win';
                 if (ua.includes('mac') || platform.includes('mac')) os = 'mac';
                 else if (ua.includes('linux') || platform.includes('linux')) os = 'linux';
@@ -274,26 +272,20 @@
                 const scored = release.assets.map(asset => {
                     const name = asset.name.toLowerCase();
                     let score = 0;
-
-                    // Platform matching
                     if (os === 'win') {
                         if (name.endsWith('.msi')) score += 100;
                         else if (name.endsWith('.exe')) score += 80;
                     }
                     if (os === 'mac' && name.endsWith('.dmg')) score += 100;
                     if (os === 'linux') {
-                        if (isUbuntu && name.endsWith('.deb')) score += 200; // Heavily weighted for Ubuntu
+                        if (isUbuntu && name.endsWith('.deb')) score += 200;
                         else if (isFedora && name.endsWith('.rpm')) score += 200;
                         else if (name.endsWith('.deb')) score += 50; 
                         else if (name.endsWith('.rpm')) score += 40;
                     }
-
-                    // Architecture matching
                     if (isArm && name.includes('arm64')) score += 50;
                     if (!isArm && (name.includes('x64') || name.includes('amd64') || name.includes('x86_64'))) score += 50;
-
-                    // Penalize portable/java for main button
-                    if (name.includes('zip') || name.endsWith('.jar')) score -= 50;
+                    if (name.includes('zip') || name.endsWith('.jar') || name.endsWith('.sha256')) score -= 50;
 
                     return { ...asset, score };
                 }).sort((a, b) => b.score - a.score);
@@ -307,13 +299,7 @@
                         <a href="${best.browser_download_url}" class="btn">Download ${best.name}</a>
                     </div>
                     <small style="color: var(--text-light)">${new Date(release.published_at).toLocaleString(undefined, {
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric', 
-                        hour: '2-digit', 
-                        minute: '2-digit', 
-                        second: '2-digit',
-                        hour12: true,
+                        year: 'numeric', month: 'long', day: 'numeric'
                     })} • ${release.tag_name} • ${(best.size / 1048576).toFixed(1)} MB</small>
                 `;
 
@@ -322,14 +308,28 @@
                     document.getElementById('release-notes-section').style.display = 'block';
                 }
 
+                // Identify artifact vs checksum files
+                const checksums = release.assets.filter(x => x.name.endsWith('.sha256'));
+                const artifacts = release.assets.filter(x => !x.name.endsWith('.sha256'));
 
-                listContainer.innerHTML = release.assets.map(a => {
+                listContainer.innerHTML = artifacts.map(a => {
                     const size = `${(a.size / 1048576).toFixed(1)} MB`;
+                    // Find matching checksum file
+                    const shaAsset = checksums.find(c => c.name === `${a.name}.sha256`);
+                    const shaHtml = shaAsset 
+                        ? `<a href="${shaAsset.browser_download_url}" class="sha-link">SHA256</a>` 
+                        : '';
 
                     return `
                     <div class="asset-item">
-                        <a href="${a.browser_download_url}" style="color: var(--accent); font-weight: 600; text-decoration: none;">${a.name}</a>
-                        <span class="tag">${determine_platform(a.name)}</span>
+                        <div class="asset-info">
+                            <a href="${a.browser_download_url}" style="color: var(--accent); font-weight: 600; text-decoration: none;">${a.name}</a>
+                            <small style="color: var(--text-light); font-size: 0.75rem;">Size: ${size}</small>
+                        </div>
+                        <div class="asset-actions">
+                            ${shaHtml}
+                            <span class="tag">${determine_platform(a.name)}</span>
+                        </div>
                     </div>
                 `
                 }).join('');
