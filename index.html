@@ -250,19 +250,6 @@
         });
         if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) setTheme('dark');
 
-        // --- SHA256 COPY ---
-        async function copySHA(url, btn) {
-            try {
-                const res = await fetch(url);
-                const text = await res.text();
-                const hash = text.split(/\s+/)[0];
-                await navigator.clipboard.writeText(hash);
-                const original = btn.innerHTML;
-                btn.innerText = "✓ Copied Hash";
-                setTimeout(() => btn.innerHTML = original, 2000);
-            } catch (e) { alert("Copy failed."); }
-        }
-
         // --- PLATFORM ICONS & TAGS ---
         function determine_platform(name){
             const n = name.toLowerCase();
@@ -325,7 +312,7 @@
                                 <a href="${a.browser_download_url}" class="asset-name">${a.name}</a>
                                 <div class="asset-meta">
                                     <span><i class="fas fa-hdd"></i> ${(a.size / 1048576).toFixed(1)} MB</span>
-                                    ${sha ? `• <button class="copy-sha" onclick="copySHA('${sha.browser_download_url}', this)"><i class="fas fa-fingerprint"></i> Copy SHA256</button>` : ''}
+                                    ${sha ? `• <a class="copy-sha" href="${sha.browser_download_url}"><i class="fas fa-fingerprint"></i>SHA256</a>` : ''}
                                 </div>
                             </div>
                             <div class="asset-side">${determine_platform(a.name)}</div>
