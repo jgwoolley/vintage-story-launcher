@@ -7,3 +7,6 @@ target/
 dependency-reduced-pom.xml
 classes
 public
+linux-resources
+output
+extracted_files
