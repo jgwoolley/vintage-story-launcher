@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nf3t VSLauncher</title>
     
-    <link rel="icon" type="image/svg+xml" href="icons/logo.svg?v=3">
+    <link rel="icon" type="image/svg+xml" href="icons/logo.svg?v=4">
     <meta name="description" content="A native graphical interface to manage multiple Vintage Story instances.">
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=3">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=4">
     <meta name="apple-mobile-web-app-title" content="VSLauncher">
     <meta name="author" content="James Woolley"> 
     <meta property="article:published_time" content="2026-01-11T20:50:00Z">
@@ -20,19 +20,18 @@
     <meta property="og:site_name" content="Nf3t VSLauncher">
     <meta property="og:description" content="Easily manage mod sets and game versions for Vintage Story.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://jgwoolley.github.io/vintage-story-launcher/icons/og-image.png?v=3">
+    <meta property="og:image" content="https://jgwoolley.github.io/vintage-story-launcher/icons/og-image.png?v=4">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:url" content="https://jgwoolley.github.io/vintage-story-launcher/?v=3">
+    <meta property="og:url" content="https://jgwoolley.github.io/vintage-story-launcher/?v=4">
     <meta property="og:article:author" content="James Woolley">
 
     <meta property="twitter:title" content="Nf3t VSLauncher">
     <meta property="twitter:description" content="Easily manage mod sets and game versions for Vintage Story.">
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://jgwoolley.github.io/vintage-story-launcher/?v=3">
-    <meta property="twitter:image" content="https://jgwoolley.github.io/vintage-story-launcher/icons/og-image.png?v=3">
-    
+    <meta property="twitter:url" content="https://jgwoolley.github.io/vintage-story-launcher/?v=4">
+    <meta property="twitter:title" content="Nf3t VSLauncher">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -42,12 +41,12 @@
       "applicationCategory": "GameApplication",
       "datePublished": "2026-01-11"
     }
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    </script><meta property="twitter:image" content="https://jgwoolley.github.io/vintage-story-launcher/icons/og-image.png?v=4">
+    
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
         :root {
             --primary: #2ea44f;
             --primary-hover: #2c974b;
@@ -75,175 +74,98 @@
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
-            line-height: 1.6; 
-            max-width: 850px; 
-            margin: 0 auto; 
-            padding: 40px 20px; 
-            background: var(--bg); 
-            color: var(--text); 
-            transition: background 0.3s, color 0.3s;
+            line-height: 1.6; max-width: 850px; margin: 0 auto; padding: 40px 20px; 
+            background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s;
         }
 
         .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px 15px;
-            border-radius: 50px;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
-            color: var(--text);
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            z-index: 100;
-            font-size: 0.85rem;
+            position: fixed; top: 20px; right: 20px; padding: 10px 15px; border-radius: 50px;
+            border: 1px solid var(--border); background: var(--card-bg); color: var(--text);
+            cursor: pointer; box-shadow: var(--shadow); z-index: 100; font-size: 0.85rem;
         }
 
         .card { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border); 
-            border-radius: 16px; 
-            padding: 32px; 
-            box-shadow: var(--shadow); 
-            margin-bottom: 24px; 
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; 
+            padding: 32px; box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden;
         }
 
         .hero {
             background: linear-gradient(135deg, var(--primary) 0%, #1d7a35 100%);
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 30px;
+            color: white; border: none; display: flex; align-items: center; justify-content: space-between; gap: 30px;
         }
         
         .hero-content { flex: 1; }
         .hero h1 { margin: 0 0 10px 0; font-size: 2.2rem; }
         .hero p { opacity: 0.9; font-size: 1.05rem; max-width: 550px; margin-bottom: 15px; }
-        
-        .hero-logo { 
-            width: 140px; 
-            height: 140px; 
-            object-fit: contain;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-        }
+        .hero-logo { width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }
 
         .links-nav { display: flex; gap: 20px; margin-bottom: 5px; }
         .links-nav a { color: white; opacity: 0.85; text-decoration: none; font-weight: 500; font-size: 0.9rem; }
         .links-nav a:hover { opacity: 1; text-decoration: underline; }
 
         .btn { 
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 28px; 
-            background: white; 
-            color: var(--primary) !important; 
-            text-decoration: none; 
-            border-radius: 10px; 
-            font-weight: 700; 
-            transition: transform 0.2s, box-shadow 0.2s; 
-            margin-top: 15px;
+            display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; 
+            background: white; color: var(--primary) !important; text-decoration: none; 
+            border-radius: 10px; font-weight: 700; transition: transform 0.2s, box-shadow 0.2s; margin-top: 15px;
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
-        /* Carousel Styling */
-        .carousel-container {
-            position: relative;
-            padding: 24px 32px;
-        }
-        .carousel-track {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 20px;
-            padding-bottom: 15px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-        .carousel-track::-webkit-scrollbar { height: 8px; }
-        .carousel-track::-webkit-scrollbar-thumb { 
-            background: var(--border); 
-            border-radius: 10px; 
+        /* --- CAROUSEL --- */
+        .carousel-wrapper {
+            position: relative; width: 100%; aspect-ratio: 1886 / 1216; background: #000;
         }
         .carousel-slide {
-            flex: 0 0 85%;
-            scroll-snap-align: center;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            background: var(--bg);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; transition: opacity 0.6s ease-in-out; display: flex; flex-direction: column;
         }
-        .carousel-slide img { width: 100%; height: auto; display: block; }
+        .carousel-slide.active { opacity: 1; z-index: 1; }
+        .carousel-slide img { width: 100%; height: 100%; object-fit: contain; }
         .carousel-caption {
-            padding: 12px;
-            text-align: center;
-            background: var(--card-bg);
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-light);
-            border-top: 1px solid var(--border);
+            position: absolute; top: 0; width: 100%; text-align: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            color: white; padding: 15px 0 30px 0; font-size: 0.95rem; font-weight: 500; z-index: 5; pointer-events: none;
         }
+        .carousel-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.3); color: white; border: none; padding: 15px 10px; cursor: pointer; z-index: 10; font-size: 1.2rem;
+        }
+        .prev { left: 0; border-radius: 0 4px 4px 0; }
+        .next { right: 0; border-radius: 4px 0 0 4px; }
+        .carousel-nav { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; }
+        .dot.active { background: var(--primary); scale: 1.2; }
 
-        .asset-item { 
-            padding: 16px 32px; 
-            border-bottom: 1px solid var(--border); 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        /* --- ASSET LIST & ICONS --- */
+        .asset-item { padding: 16px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .asset-item:last-child { border-bottom: none; }
-        .asset-main { display: flex; flex-direction: column; align-items: flex-start; }
-        .asset-name { color: var(--accent); font-weight: 600; text-decoration: none; font-size: 1rem; margin-bottom: 2px; }
-        .asset-meta { font-size: 0.75rem; color: var(--text-light); display: flex; gap: 10px; align-items: center; }
-
-        .tag { 
-            font-size: 0.75rem; 
-            font-weight: 600;
-            color: var(--text-light); 
-            background: var(--tag-bg); 
-            padding: 4px 12px; 
-            border-radius: 6px; 
-            border: 1px solid var(--tag-border);
-            white-space: nowrap;
-        }
-
+        .asset-main { display: flex; flex-direction: column; }
+        .asset-name { color: var(--accent); font-weight: 600; text-decoration: none; font-size: 1rem; }
+        .asset-meta { font-size: 0.75rem; color: var(--text-light); display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+        
         .copy-sha {
-            background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0; text-decoration: underline; font-size: inherit;
+            background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0; text-decoration: underline; font-size: inherit; font-family: inherit;
         }
         .copy-sha:hover { color: var(--accent); }
 
-        .section-header {
-            padding: 20px 32px; 
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .tag { 
+            font-size: 0.75rem; font-weight: 600; color: var(--text-light); background: var(--tag-bg); 
+            padding: 4px 12px; border-radius: 6px; border: 1px solid var(--tag-border); display: flex; align-items: center; gap: 6px;
         }
-        .section-header i { font-size: 1.1rem; color: var(--primary); }
-        [data-theme="dark"] .section-header i { color: var(--accent); }
 
+        .section-header { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .notes-content { padding: 24px 32px; font-size: 0.95rem; }
-        .notes-content h1, .notes-content h2 { border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-top: 24px; }
-
-        .skeleton {
-            height: 20px; background: var(--border); border-radius: 4px; margin: 10px 0; animation: pulse 1.5s infinite ease-in-out;
-        }
+        .skeleton { height: 20px; background: var(--border); border-radius: 4px; margin: 10px 0; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.3; } }
 
         @media (max-width: 750px) {
-            .hero { flex-direction: column-reverse; text-align: center; gap: 20px; }
-            .hero-content { display: flex; flex-direction: column; align-items: center; }
-            .links-nav { justify-content: center; }
-            .asset-item { flex-direction: column; align-items: flex-start; gap: 12px; }
-            .carousel-slide { flex: 0 0 100%; }
+            .hero { flex-direction: column-reverse; text-align: center; }
+            .asset-item { flex-direction: column; align-items: flex-start; gap: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <button class="theme-toggle" id="theme-btn" aria-label="Toggle dark mode">
+    <button class="theme-toggle" id="theme-btn">
         <i id="theme-icon" class="fas fa-moon"></i> Dark Mode
     </button>
 
@@ -259,49 +181,37 @@
                 <div class="skeleton" style="width: 220px; margin-top: 20px;"></div>
             </div>
         </div>
-        <img src="icons/logo.svg" class="hero-logo" alt="Nf3t VSLauncher Logo">
+        <img src="icons/logo.svg" class="hero-logo" alt="Logo">
     </header>
 
     <main id="main-content">
         <section class="card" style="padding: 0;">
-            <div class="section-header">
-                <i class="fas fa-images"></i>
-                <h3 style="margin:0">Screenshots</h3>
-            </div>
-            <div class="carousel-container">
-                <div class="carousel-track">
-                    <div class="carousel-slide">
-                        <img src="screenshots/main.png" alt="Launcher Main Screen">
-                        <div class="carousel-caption">Instance Management Dashboard</div>
-                    </div>
-                    <div class="carousel-slide">
-                        <img src="screenshots/mods.png" alt="Mod Manager">
-                        <div class="carousel-caption">Advanced Mod & Version Control</div>
-                    </div>
-                    <div class="carousel-slide">
-                        <img src="screenshots/settings.png" alt="Settings Screen">
-                        <div class="carousel-caption">Customizable Launch Options</div>
-                    </div>
+            <div class="section-header"><i class="fas fa-desktop"></i><h3 style="margin:0">Screenshots</h3></div>
+            <div class="carousel-wrapper" id="carousel">
+                <button class="carousel-btn prev" onclick="moveSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-btn next" onclick="moveSlide(1)"><i class="fas fa-chevron-right"></i></button>
+                <div class="carousel-slide active">
+                    <div class="carousel-caption">Main Interface</div>
+                    <img src="icons/Screenshot_Main.png" alt="Main Interface">
+                </div>
+                <div class="carousel-slide">
+                    <div class="carousel-caption">Instance Details & Mod Management</div>
+                    <img src="icons/Screenshot_Instance.png" alt="Instance Manager">
+                </div>
+                <div class="carousel-nav" id="carousel-dots">
+                    <div class="dot active" onclick="jumpToSlide(0)"></div>
+                    <div class="dot" onclick="jumpToSlide(1)"></div>
                 </div>
             </div>
         </section>
 
         <section class="card" style="padding: 0;">
-            <div class="section-header">
-                <i class="fas fa-bullhorn"></i>
-                <h3 style="margin:0">What's New</h3>
-            </div>
-            <div id="release-notes" class="notes-content">
-                <div class="skeleton"></div>
-                <div class="skeleton" style="width: 85%;"></div>
-            </div>
+            <div class="section-header"><i class="fas fa-bullhorn"></i><h3 style="margin:0">What's New</h3></div>
+            <div id="release-notes" class="notes-content"><div class="skeleton"></div></div>
         </section>
 
         <section class="card" style="padding: 0;">
-            <div class="section-header">
-                <i class="fas fa-download"></i>
-                <h3 style="margin:0">All Release Files</h3>
-            </div>
+            <div class="section-header"><i class="fas fa-download"></i><h3 style="margin:0">All Release Files</h3></div>
             <div id="full-list"></div>
         </section>
     </main>
@@ -309,56 +219,69 @@
     <script>
         const REPO = "jgwoolley/vintage-story-launcher";
 
-        // THEME LOGIC
+        // --- CAROUSEL LOGIC ---
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.dot');
+        function updateCarousel() {
+            slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+            dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+        }
+        function moveSlide(step) {
+            currentSlide = (currentSlide + step + slides.length) % slides.length;
+            updateCarousel(); resetTimer();
+        }
+        function jumpToSlide(index) {
+            currentSlide = index; updateCarousel(); resetTimer();
+        }
+        let slideInterval = setInterval(() => moveSlide(1), 5000);
+        function resetTimer() { clearInterval(slideInterval); slideInterval = setInterval(() => moveSlide(1), 5000); }
+
+        // --- THEME ---
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
-            const icon = document.getElementById('theme-icon');
             const btn = document.getElementById('theme-btn');
-            if (theme === 'dark') {
-                icon.className = 'fas fa-sun';
-                btn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
-            } else {
-                icon.className = 'fas fa-moon';
-                btn.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
-            }
+            btn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i> Light Mode' : '<i class="fas fa-moon"></i> Dark Mode';
             localStorage.setItem('theme', theme);
         }
-
         document.getElementById('theme-btn').addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme');
             setTheme(current === 'dark' ? 'light' : 'dark');
         });
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) setTheme('dark');
 
-        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            setTheme('dark');
-        }
-
-        // PLATFORM DETECTION
-        function determine_platform(name){
-            const n = name.toLowerCase();
-            let os = 'Unknown';
-            if(n.includes('win')) os = '<i class="fab fa-windows"></i> Windows';
-            else if(n.includes('macos')) os = '<i class="fab fa-apple"></i> macOS';
-            else if(n.includes('linux')) {
-                if (n.endsWith('.deb')) os = '<i class="fab fa-linux"></i> Linux (Debian/Ubuntu)';
-                else if (n.endsWith('.rpm')) os = '<i class="fab fa-linux"></i> Linux (Fedora/RedHat)';
-                else if (n.endsWith('.tar.gz')) os = '<i class="fab fa-linux"></i> Linux (Generic)';
-                else os = '<i class="fab fa-linux"></i> Linux';
-            }
-            let arch = n.includes('arm64') ? 'ARM64' : (n.includes('x64') || n.includes('amd64') ? 'x64' : '');
-            return `<span class="tag">${os} ${arch}</span>`;
-        }
-
+        // --- SHA256 COPY ---
         async function copySHA(url, btn) {
             try {
                 const res = await fetch(url);
                 const text = await res.text();
                 const hash = text.split(/\s+/)[0];
                 await navigator.clipboard.writeText(hash);
-                const originalText = btn.innerHTML;
+                const original = btn.innerHTML;
                 btn.innerText = "✓ Copied Hash";
-                setTimeout(() => btn.innerHTML = originalText, 2000);
+                setTimeout(() => btn.innerHTML = original, 2000);
             } catch (e) { alert("Copy failed."); }
+        }
+
+        // --- PLATFORM ICONS & TAGS ---
+        function determine_platform(name){
+            const n = name.toLowerCase();
+            let icon = '<i class="fas fa-file-archive"></i>';
+            let label = 'Unknown';
+
+            if(n.includes('win')) {
+                icon = '<i class="fab fa-windows"></i>';
+                label = 'Windows';
+            } else if(n.includes('macos')) {
+                icon = '<i class="fab fa-apple"></i>';
+                label = 'macOS';
+            } else if(n.includes('linux')) {
+                icon = '<i class="fab fa-linux"></i>';
+                if (n.endsWith('.deb')) label = 'Linux (Debian/Ubuntu)';
+                else if (n.endsWith('.rpm')) label = 'Linux (Fedora/RedHat)';
+                else label = 'Linux (Generic)';
+            }
+            return `<span class="tag">${icon} ${label}</span>`;
         }
 
         async function init() {
@@ -367,43 +290,33 @@
                 const release = await res.json();
                 const ua = navigator.userAgent.toLowerCase();
                 
-                const isWin = ua.includes('win');
-                const isMac = ua.includes('mac');
+                const isWin = ua.includes('win'), isMac = ua.includes('mac');
                 const isUbuntu = ua.includes('ubuntu') || ua.includes('debian');
-                const isFedora = ua.includes('fedora') || ua.includes('red hat') || ua.includes('centos');
+                const isFedora = ua.includes('fedora') || ua.includes('red hat');
                 
                 const artifacts = release.assets.filter(a => !a.name.endsWith('.sha256'));
                 const checksums = release.assets.filter(a => a.name.endsWith('.sha256'));
-                
+
                 const best = artifacts.sort((a, b) => {
-                    const nameA = a.name.toLowerCase();
-                    const nameB = b.name.toLowerCase();
+                    const nA = a.name.toLowerCase(), nB = b.name.toLowerCase();
                     let sA = 0, sB = 0;
-
-                    if (isWin && nameA.includes('win')) sA = 10;
-                    if (isMac && nameA.includes('macos')) sA = 10;
-                    if (isUbuntu && nameA.endsWith('.deb')) sA = 10;
-                    if (isFedora && nameA.endsWith('.rpm')) sA = 10;
-
-                    if (isWin && nameB.includes('win')) sB = 10;
-                    if (isMac && nameB.includes('macos')) sB = 10;
-                    if (isUbuntu && nameB.endsWith('.deb')) sB = 10;
-                    if (isFedora && nameB.endsWith('.rpm')) sB = 10;
-
+                    if (isWin && nA.includes('win')) sA = 10;
+                    if (isMac && nA.includes('macos')) sA = 10;
+                    if (isUbuntu && nA.endsWith('.deb')) sA = 10;
+                    if (isFedora && nA.endsWith('.rpm')) sA = 10;
+                    if (isWin && nB.includes('win')) sB = 10;
+                    if (isMac && nB.includes('macos')) sB = 10;
+                    if (isUbuntu && nB.endsWith('.deb')) sB = 10;
+                    if (isFedora && nB.endsWith('.rpm')) sB = 10;
                     return sB - sA;
                 })[0];
 
                 document.getElementById('recommended-container').innerHTML = `
-                    <a href="${best.browser_download_url}" class="btn">
-                        <i class="fas fa-rocket"></i> Download ${best.name}
-                    </a>
-                    <p style="font-size: 0.8rem; margin-top: 10px; opacity: 0.85;">
-                        Version ${release.tag_name} • Released ${new Date(release.published_at).toLocaleDateString()}
-                    </p>
-                `;
+                    <a href="${best.browser_download_url}" class="btn"><i class="fas fa-rocket"></i> Download ${best.name}</a>
+                    <p style="font-size: 0.8rem; margin-top: 10px; opacity: 0.85;">Version ${release.tag_name} • ${new Date(release.published_at).toLocaleDateString()}</p>`;
 
-                document.getElementById('release-notes').innerHTML = marked.parse(release.body || "No release notes available.");
-
+                document.getElementById('release-notes').innerHTML = marked.parse(release.body || "");
+                
                 document.getElementById('full-list').innerHTML = artifacts.map(a => {
                     const sha = checksums.find(c => c.name.startsWith(a.name));
                     return `
@@ -411,20 +324,15 @@
                             <div class="asset-main">
                                 <a href="${a.browser_download_url}" class="asset-name">${a.name}</a>
                                 <div class="asset-meta">
-                                    <span><i class="fas fa-weight-hanging" style="font-size:0.65rem"></i> ${(a.size / 1048576).toFixed(1)} MB</span>
+                                    <span><i class="fas fa-hdd"></i> ${(a.size / 1048576).toFixed(1)} MB</span>
                                     ${sha ? `• <button class="copy-sha" onclick="copySHA('${sha.browser_download_url}', this)"><i class="fas fa-fingerprint"></i> Copy SHA256</button>` : ''}
                                 </div>
                             </div>
                             <div class="asset-side">${determine_platform(a.name)}</div>
-                        </div>
-                    `;
+                        </div>`;
                 }).join('');
-
-            } catch (e) {
-                document.getElementById('main-content').innerHTML = `<div class="card">Unable to load release information. Please visit GitHub directly.</div>`;
-            }
+            } catch (e) { console.error(e); }
         }
-
         init();
     </script>
 </body>
