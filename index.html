@@ -202,11 +202,6 @@
             <p>Analyzing system architecture...</p>
         </div>
 
-        <section id="release-notes-section" class="card" style="display: none;">
-            <h3 style="margin-top:0">What's New</h3>
-            <div id="release-notes" class="notes-content"></div>
-        </section>
-
         <section class="card">
             <h3 style="margin-top:0">All Release Files</h3>
             <div id="full-list"></div>
@@ -302,11 +297,6 @@
                         year: 'numeric', month: 'long', day: 'numeric'
                     })} • ${release.tag_name} • ${(best.size / 1048576).toFixed(1)} MB</small>
                 `;
-
-                if (release.body) {
-                    document.getElementById('release-notes').textContent = release.body;
-                    document.getElementById('release-notes-section').style.display = 'block';
-                }
 
                 // Identify artifact vs checksum files
                 const checksums = release.assets.filter(x => x.name.endsWith('.sha256'));
