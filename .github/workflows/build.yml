@@ -61,6 +61,7 @@ jobs:
 
           # This regex ensures the first digit is 1-9, followed by any digits, then the rest of the version
           CLEAN_VERSION=$(echo $RAW_VERSION | grep -oE '[1-9][0-9]*\.[0-9]+(\.[0-9]+)?' | head -1)
+          echo "APP_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
 
           if [ -z "$CLEAN_VERSION" ]; then
               echo "Error: No valid version starting with 1+ found."
