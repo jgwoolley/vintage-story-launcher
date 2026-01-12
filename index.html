@@ -108,7 +108,6 @@
             margin-bottom: 24px; 
         }
 
-        /* Hero Styling */
         .hero {
             background: linear-gradient(135deg, var(--primary) 0%, #1d7a35 100%);
             color: white;
@@ -149,7 +148,44 @@
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
-        /* Asset Rows Alignment */
+        /* Carousel Styling */
+        .carousel-container {
+            position: relative;
+            padding: 24px 32px;
+        }
+        .carousel-track {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 20px;
+            padding-bottom: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+        .carousel-track::-webkit-scrollbar { height: 8px; }
+        .carousel-track::-webkit-scrollbar-thumb { 
+            background: var(--border); 
+            border-radius: 10px; 
+        }
+        .carousel-slide {
+            flex: 0 0 85%;
+            scroll-snap-align: center;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .carousel-slide img { width: 100%; height: auto; display: block; }
+        .carousel-caption {
+            padding: 12px;
+            text-align: center;
+            background: var(--card-bg);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+        }
+
         .asset-item { 
             padding: 16px 32px; 
             border-bottom: 1px solid var(--border); 
@@ -158,7 +194,6 @@
             align-items: center;
         }
         .asset-item:last-child { border-bottom: none; }
-        
         .asset-main { display: flex; flex-direction: column; align-items: flex-start; }
         .asset-name { color: var(--accent); font-weight: 600; text-decoration: none; font-size: 1rem; margin-bottom: 2px; }
         .asset-meta { font-size: 0.75rem; color: var(--text-light); display: flex; gap: 10px; align-items: center; }
@@ -175,13 +210,7 @@
         }
 
         .copy-sha {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            padding: 0;
-            text-decoration: underline;
-            font-size: inherit;
+            background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0; text-decoration: underline; font-size: inherit;
         }
         .copy-sha:hover { color: var(--accent); }
 
@@ -199,11 +228,7 @@
         .notes-content h1, .notes-content h2 { border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-top: 24px; }
 
         .skeleton {
-            height: 20px;
-            background: var(--border);
-            border-radius: 4px;
-            margin: 10px 0;
-            animation: pulse 1.5s infinite ease-in-out;
+            height: 20px; background: var(--border); border-radius: 4px; margin: 10px 0; animation: pulse 1.5s infinite ease-in-out;
         }
         @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.3; } }
 
@@ -212,6 +237,7 @@
             .hero-content { display: flex; flex-direction: column; align-items: center; }
             .links-nav { justify-content: center; }
             .asset-item { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .carousel-slide { flex: 0 0 100%; }
         }
     </style>
 </head>
@@ -239,6 +265,29 @@
     <main id="main-content">
         <section class="card" style="padding: 0;">
             <div class="section-header">
+                <i class="fas fa-images"></i>
+                <h3 style="margin:0">Screenshots</h3>
+            </div>
+            <div class="carousel-container">
+                <div class="carousel-track">
+                    <div class="carousel-slide">
+                        <img src="screenshots/main.png" alt="Launcher Main Screen">
+                        <div class="carousel-caption">Instance Management Dashboard</div>
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="screenshots/mods.png" alt="Mod Manager">
+                        <div class="carousel-caption">Advanced Mod & Version Control</div>
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="screenshots/settings.png" alt="Settings Screen">
+                        <div class="carousel-caption">Customizable Launch Options</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" style="padding: 0;">
+            <div class="section-header">
                 <i class="fas fa-bullhorn"></i>
                 <h3 style="margin:0">What's New</h3>
             </div>
@@ -253,18 +302,25 @@
                 <i class="fas fa-download"></i>
                 <h3 style="margin:0">All Release Files</h3>
             </div>
-            <div id="full-list">
-                </div>
+            <div id="full-list"></div>
         </section>
     </main>
 
     <script>
         const REPO = "jgwoolley/vintage-story-launcher";
 
+        // THEME LOGIC
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             const icon = document.getElementById('theme-icon');
-            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            const btn = document.getElementById('theme-btn');
+            if (theme === 'dark') {
+                icon.className = 'fas fa-sun';
+                btn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+            } else {
+                icon.className = 'fas fa-moon';
+                btn.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+            }
             localStorage.setItem('theme', theme);
         }
 
@@ -277,12 +333,18 @@
             setTheme('dark');
         }
 
+        // PLATFORM DETECTION
         function determine_platform(name){
             const n = name.toLowerCase();
             let os = 'Unknown';
             if(n.includes('win')) os = '<i class="fab fa-windows"></i> Windows';
             else if(n.includes('macos')) os = '<i class="fab fa-apple"></i> macOS';
-            else if(n.includes('linux')) os = '<i class="fab fa-linux"></i> Linux';
+            else if(n.includes('linux')) {
+                if (n.endsWith('.deb')) os = '<i class="fab fa-linux"></i> Linux (Debian/Ubuntu)';
+                else if (n.endsWith('.rpm')) os = '<i class="fab fa-linux"></i> Linux (Fedora/RedHat)';
+                else if (n.endsWith('.tar.gz')) os = '<i class="fab fa-linux"></i> Linux (Generic)';
+                else os = '<i class="fab fa-linux"></i> Linux';
+            }
             let arch = n.includes('arm64') ? 'ARM64' : (n.includes('x64') || n.includes('amd64') ? 'x64' : '');
             return `<span class="tag">${os} ${arch}</span>`;
         }
@@ -293,9 +355,9 @@
                 const text = await res.text();
                 const hash = text.split(/\s+/)[0];
                 await navigator.clipboard.writeText(hash);
-                const originalText = btn.innerText;
+                const originalText = btn.innerHTML;
                 btn.innerText = "✓ Copied Hash";
-                setTimeout(() => btn.innerText = originalText, 2000);
+                setTimeout(() => btn.innerHTML = originalText, 2000);
             } catch (e) { alert("Copy failed."); }
         }
 
@@ -303,16 +365,31 @@
             try {
                 const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`);
                 const release = await res.json();
-                
                 const ua = navigator.userAgent.toLowerCase();
-                let osDetect = ua.includes('win') ? 'win' : (ua.includes('mac') ? 'mac' : 'linux');
+                
+                const isWin = ua.includes('win');
+                const isMac = ua.includes('mac');
+                const isUbuntu = ua.includes('ubuntu') || ua.includes('debian');
+                const isFedora = ua.includes('fedora') || ua.includes('red hat') || ua.includes('centos');
                 
                 const artifacts = release.assets.filter(a => !a.name.endsWith('.sha256'));
                 const checksums = release.assets.filter(a => a.name.endsWith('.sha256'));
                 
                 const best = artifacts.sort((a, b) => {
-                    let sA = a.name.toLowerCase().includes(osDetect) ? 1 : 0;
-                    let sB = b.name.toLowerCase().includes(osDetect) ? 1 : 0;
+                    const nameA = a.name.toLowerCase();
+                    const nameB = b.name.toLowerCase();
+                    let sA = 0, sB = 0;
+
+                    if (isWin && nameA.includes('win')) sA = 10;
+                    if (isMac && nameA.includes('macos')) sA = 10;
+                    if (isUbuntu && nameA.endsWith('.deb')) sA = 10;
+                    if (isFedora && nameA.endsWith('.rpm')) sA = 10;
+
+                    if (isWin && nameB.includes('win')) sB = 10;
+                    if (isMac && nameB.includes('macos')) sB = 10;
+                    if (isUbuntu && nameB.endsWith('.deb')) sB = 10;
+                    if (isFedora && nameB.endsWith('.rpm')) sB = 10;
+
                     return sB - sA;
                 })[0];
 
@@ -338,9 +415,7 @@
                                     ${sha ? `• <button class="copy-sha" onclick="copySHA('${sha.browser_download_url}', this)"><i class="fas fa-fingerprint"></i> Copy SHA256</button>` : ''}
                                 </div>
                             </div>
-                            <div class="asset-side">
-                                ${determine_platform(a.name)}
-                            </div>
+                            <div class="asset-side">${determine_platform(a.name)}</div>
                         </div>
                     `;
                 }).join('');
