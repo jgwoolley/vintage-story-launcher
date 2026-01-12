@@ -54,28 +54,22 @@ jobs:
       - name: Extract Maven Values
         shell: bash
         run: |
-          FINAL_NAME=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)
-          echo "FINAL_NAME=$FINAL_NAME" >> $GITHUB_ENV
+          JAR_NAME=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)
+          echo "JAR_NAME=$JAR_NAME" >> $GITHUB_ENV
 
           APP_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
-          echo "FINAL_NAME=${FINAL_NAME};APP_VERSION=${APP_VERSION}"
+          echo "JAR_NAME=${JAR_NAME};APP_VERSION=${APP_VERSION}"
 
       - name: Prepare Packaging Folder
         shell: bash
         run: |
-          # Find the JAR and store it in a local bash variable
-          SELECTED_JAR=$(basename $(ls target/*.jar | grep -v 'original' | grep -v 'sources' | grep -v 'javadoc' | head -n 1))
-          
-          # Export it for FUTURE steps (jpackage)
-          echo "JAR_NAME=$SELECTED_JAR" >> $GITHUB_ENV
-          
           # Use the local variable for THIS step
           mkdir -p package-in
-          cp "target/$SELECTED_JAR" package-in/
+          cp "target/${{ env.JAR_NAME }}" package-in/
           mkdir -p output
-          cp "target/$SELECTED_JAR" "output/VSLauncher-${{ matrix.artifact-type }}.jar"
+          cp "target/${{ env.JAR_NAME }}" "output/VSLauncher-${{ matrix.os }}${{ matrix.arch }}.jar"
 
       # --- WINDOWS ---
       - name: Package Windows
@@ -103,7 +97,7 @@ jobs:
             --app-version "${{ env.APP_VERSION }}" \
             --icon icons/favicon.ico
           
-          Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-Win-${{ matrix.arch }}-Portable.zip"
+          Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-${{ matrix.os }}${{ matrix.arch }}-Portable.zip"
 
       # --- LINUX ---
       - name: Package Linux
