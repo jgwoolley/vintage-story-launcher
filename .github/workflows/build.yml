@@ -57,10 +57,15 @@ jobs:
           JAR_NAME=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout).jar
           echo "JAR_NAME=$JAR_NAME" >> $GITHUB_ENV
 
-          APP_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+          RAW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          CLEAN_VERSION=$(echo $RAW_VERSION | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
+          echo "APP_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
 
-          echo "JAR_NAME=${JAR_NAME};APP_VERSION=${APP_VERSION}"
+          APP_NAME=VSLauncher
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+
+          echo "APP_NAME=${APP_NAME};JAR_NAME=${JAR_NAME};APP_VERSION=${APP_VERSION}"
+
 
       - name: Prepare Packaging Folder
         shell: bash
@@ -69,7 +74,7 @@ jobs:
           mkdir -p package-in
           cp "target/${{ env.JAR_NAME }}" package-in/
           mkdir -p output
-          cp "target/${{ env.JAR_NAME }}" "output/VSLauncher-${{ artifact-type }}.jar"
+          cp "target/${{ env.JAR_NAME }}" "output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.jar"
 
       # --- WINDOWS ---
       - name: Package Windows
@@ -78,7 +83,7 @@ jobs:
         run: |
           jpackage --input package-in `
             --dest output/ `
-            --name "VSLauncher-${{ artifact-type }}" `
+            --name "${{ env.APP_NAME }}" `
             --main-jar ${{ env.JAR_NAME }} `
             --main-class com.yelloowstone.vslauncher.Launcher `
             --type msi `
@@ -88,31 +93,30 @@ jobs:
             --app-version "${{ env.APP_VERSION }}" `
             --icon icons/favicon.ico
           
+          Move-Item "output/${{ env.APP_NAME }}*.msi" "output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.msi"
+          
           jpackage --input package-in `
             --dest output/portable/ `
-            --name "VSLauncher-${{ artifact-type }}" `
+            --name "${{ env.APP_NAME }}" `
             --main-jar ${{ env.JAR_NAME }} `
             --main-class com.yelloowstone.vslauncher.Launcher `
             --type app-image `
             --app-version "${{ env.APP_VERSION }}" `
             --icon icons/favicon.ico
           
-          Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-${{ artifact-type }}-Portable.zip"
-      # --- LINUX ---
+          Compress-Archive -Path "output/portable/${{ env.APP_NAME }}" -DestinationPath "output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}-Portable.zip"      # --- LINUX ---
       - name: Package Linux
         if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
         run: |
           sudo apt-get update
           sudo apt-get install -y rpm fakeroot
           
-          APP_NAME="VSLauncher-${{ matrix.os }}${{ matrix.arch }}"
-
           mkdir -p linux-resources
-          cp icons/icon-128.png "linux-resources/${APP_NAME}.png"
+          cp icons/icon-128.png "linux-resources/${{ env.APP_NAME }}.png"
           
           jpackage --input package-in \
             --dest output/ \
-            --name "${APP_NAME}" \
+            --name "${{ env.APP_NAME }}" \
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type deb \
@@ -126,7 +130,7 @@ jobs:
           
           jpackage --input package-in \
             --dest output/ \
-            --name "${APP_NAME}" \
+            --name "${{ env.APP_NAME }}" \
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type rpm \
@@ -137,13 +141,16 @@ jobs:
 
           jpackage --input package-in \
             --dest output/portable/ \
-            --name "VSLauncher-Linux-Portable" \
+            --name "${{ env.APP_NAME }}" \
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type app-image \
             --app-version "${{ env.APP_VERSION }}"
 
-          tar -czf "output/VSLauncher-${{ artifact-type }}-Portable.tar.gz" -C output/portable VSLauncher-Linux-Portable
+          find output/ -name "vslauncher*.deb" -exec mv {} output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.deb \;
+          find output/ -name "vslauncher*.rpm" -exec mv {} output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.rpm \;
+          
+          tar -czf "output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}-Portable.tar.gz" -C output/portable ${{ env.APP_NAME }}
 
       # --- MACOS ---
       - name: Package MacOS
@@ -151,14 +158,29 @@ jobs:
         run: |
           jpackage --input package-in \
             --dest output/ \
-            --name "VSLauncher-${{ artifact-type }}" \
+            --name "${{ env.APP_NAME }}" \
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type dmg \
             --mac-package-identifier "com.yelloowstone.vslauncher" \
-            --mac-package-name "Vintage Story Launcher" \
+            --mac-package-name "VSlauncher" \
             --app-version "${{ env.APP_VERSION }}" \
             --icon icons/app-icon.icns 
+
+          mv output/${{ env.APP_NAME }}.dmg output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.dmg
+
+      # --- GENERATE CHECKSUMS (New Step) ---
+      - name: Generate Checksums
+        shell: bash
+        run: |
+          cd output
+          for file in *; do
+            if [ -f "$file" ] && [[ "$file" != *.sha256 ]]; then
+              shasum -a 256 "$file" > "$file.sha256"
+              echo "Generated checksum for $file"
+            fi
+          done
+
 
       # If you prefer not to use a 3rd party retry action, 
       # simply duplicate the step with 'continue-on-error: true'
@@ -205,6 +227,7 @@ jobs:
             ./all-installers/*.rpm
             ./all-installers/*.dmg
             ./all-installers/*.jar
+            ./all-installers/*.sha256
           generate_release_notes: true
 
       # --- THE FAIL GATE ---
