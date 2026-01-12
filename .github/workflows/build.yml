@@ -52,6 +52,7 @@ jobs:
         run: mvn clean package
 
       - name: Extract Maven Values
+        shell: bash
         run: |
           FINAL_NAME=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)
           echo "FINAL_NAME=$FINAL_NAME" >> $GITHUB_ENV
