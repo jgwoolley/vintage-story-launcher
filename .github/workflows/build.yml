@@ -51,6 +51,14 @@ jobs:
       - name: Build Fat JAR
         run: mvn clean package
 
+      - name: Extract Maven Values
+        run: |
+          FINAL_NAME=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)
+          echo "FINAL_NAME=$FINAL_NAME" >> $GITHUB_ENV
+
+          APP_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+
       - name: Prepare Packaging Folder
         shell: bash
         run: |
@@ -73,21 +81,23 @@ jobs:
         run: |
           jpackage --input package-in `
             --dest output/ `
-            --name "VSLauncher-Win-${{ matrix.arch }}" `
+            --name "VSLauncher-${{ matrix.os }}-${{ matrix.arch }}" `
             --main-jar ${{ env.JAR_NAME }} `
             --main-class com.yelloowstone.vslauncher.Launcher `
             --type msi `
             --win-dir-chooser `
             --win-shortcut `
             --win-menu `
+            --app-version "${{ env.APP_VERSION }}" \
             --icon icons/favicon.ico
           
           jpackage --input package-in `
             --dest output/portable/ `
-            --name "VSLauncher-Portable" `
+            --name "VSLauncher-${{ matrix.os }}-${{ matrix.arch }}" `
             --main-jar ${{ env.JAR_NAME }} `
             --main-class com.yelloowstone.vslauncher.Launcher `
             --type app-image `
+            --app-version "${{ env.APP_VERSION }}" \
             --icon icons/favicon.ico
           
           Compress-Archive -Path "output/portable/VSLauncher-Portable" -DestinationPath "output/VSLauncher-Win-${{ matrix.arch }}-Portable.zip"
@@ -99,7 +109,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y rpm fakeroot
           
-          APP_NAME="vslauncher-${{ matrix.arch }}"
+          APP_NAME="VSLauncher-${{ matrix.os }}${{ matrix.arch }}"
 
           mkdir -p linux-resources
           cp icons/icon-128.png "linux-resources/${APP_NAME}.png"
@@ -110,9 +120,11 @@ jobs:
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type deb \
+            --linux-package-name vslauncher \
             --linux-shortcut \
             --linux-menu-group "Game" \
             --linux-app-category "Game" \
+            --app-version "${{ env.APP_VERSION }}" \
             --resource-dir linux-resources \
             --icon icons/icon-128.png
           
@@ -122,23 +134,24 @@ jobs:
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type rpm \
+            --linux-package-name vslauncher \
             --linux-shortcut \
+            --app-version "${{ env.APP_VERSION }}" \
             --resource-dir linux-resources \
 
       # --- MACOS ---
       - name: Package MacOS
         if: startsWith(matrix.os, 'macos') && startsWith(github.ref, 'refs/tags/v')
-
         run: |
           jpackage --input package-in \
             --dest output/ \
-            --name "VSLauncher-Mac-${{ matrix.arch }}" \
+            --name "VSLauncher-${{ matrix.os }}-${{ matrix.arch }}" \
             --main-jar ${{ env.JAR_NAME }} \
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type dmg \
             --mac-package-identifier "com.yelloowstone.vslauncher" \
-            --mac-package-name "Vintage Story Launcher ${{ matrix.arch }}" \
-            --app-version "1.0.0" \
+            --mac-package-name "Vintage Story Launcher" \
+            --app-version "${{ env.APP_VERSION }}" \
             --icon icons/app-icon.icns 
 
       # If you prefer not to use a 3rd party retry action, 
