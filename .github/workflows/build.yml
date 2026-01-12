@@ -147,8 +147,8 @@ jobs:
             --type app-image \
             --app-version "${{ env.APP_VERSION }}"
 
-          find output/ -name "vslauncher*.deb" -exec mv {} output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.deb \;
-          find output/ -name "vslauncher*.rpm" -exec mv {} output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.rpm \;
+          find output/ -maxdepth 1 -name "vslauncher*.deb" -exec mv {} output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.deb \;
+          find output/ -maxdepth 1 -name "vslauncher*.rpm" -exec mv {} output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.rpm \;
           
           tar -czf "output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}-Portable.tar.gz" -C output/portable ${{ env.APP_NAME }}
 
@@ -175,8 +175,15 @@ jobs:
         run: |
           cd output
           for file in *; do
+            # Skip directories and existing .sha256 files
             if [ -f "$file" ] && [[ "$file" != *.sha256 ]]; then
-              shasum -a 256 "$file" > "$file.sha256"
+              if [[ "$RUNNER_OS" == "Windows" ]]; then
+                # Use PowerShell's engine for Windows
+                powershell.exe -Command "(Get-FileHash -Path '$file' -Algorithm SHA256).Hash.ToLower() + '  $file'" > "$file.sha256"
+              else
+                # Use shasum for Linux and macOS
+                shasum -a 256 "$file" > "$file.sha256"
+              fi
               echo "Generated checksum for $file"
             fi
           done
