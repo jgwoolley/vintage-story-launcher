@@ -58,8 +58,14 @@ jobs:
           echo "JAR_NAME=$JAR_NAME" >> $GITHUB_ENV
 
           RAW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          CLEAN_VERSION=$(echo $RAW_VERSION | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
-          echo "APP_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
+
+          # This regex ensures the first digit is 1-9, followed by any digits, then the rest of the version
+          CLEAN_VERSION=$(echo $RAW_VERSION | grep -oE '[1-9][0-9]*\.[0-9]+(\.[0-9]+)?' | head -1)
+
+          if [ -z "$CLEAN_VERSION" ]; then
+              echo "Error: No valid version starting with 1+ found."
+              exit 1
+          fi
 
           APP_NAME=VSLauncher
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
@@ -163,11 +169,11 @@ jobs:
             --main-class com.yelloowstone.vslauncher.Launcher \
             --type dmg \
             --mac-package-identifier "com.yelloowstone.vslauncher" \
-            --mac-package-name "VSlauncher" \
+            --mac-package-name "${{ env.APP_NAME }}" \
             --app-version "${{ env.APP_VERSION }}" \
             --icon icons/app-icon.icns 
 
-          mv output/${{ env.APP_NAME }}.dmg output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.dmg
+          mv output/*.dmg output/${{ env.APP_NAME }}-${{ matrix.artifact-type }}.dmg
 
       # --- GENERATE CHECKSUMS (New Step) ---
       - name: Generate Checksums
