@@ -9,6 +9,9 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -95,25 +98,79 @@ public class VintageStoryInstance {
         return OS.contains("nix") || OS.contains("nux") || OS.contains("aix");
     }
 
-    public void open() {
+    public void open(final ObjectMapper objectMapper) {
+        final List<String> modPathArgs = getModPathArgs(objectMapper);
         if (isWindows()) {
-        	openWindows();
+        	openWindows(modPathArgs);
         } else if (isMac()) {
-            openMac();
+            openMac(modPathArgs);
         } else if (isUnix()) {
-            openLinux();
+            openLinux(modPathArgs);
         } else {
             System.out.println("Detected: Unknown OS");
         }
     }
 
-    public void openWindows() {
+    @JsonIgnore
+    public File getModsPath() {
+        return new File(this.dataPath, "Mods");
+    }
+
+    /**
+     * The "modPaths" entry of clientsettings.json. Vintage Story stores the Mods folder
+     * as an absolute path, so a clientsettings.json copied from another data folder or
+     * synced from another computer (e.g. a different user name) can point somewhere else.
+     */
+    @JsonIgnore
+    public List<String> getConfiguredModPaths(final ObjectMapper objectMapper) {
+        try {
+            final ClientSettingsFile settings = getClientSettingsFile(objectMapper);
+            if (settings == null || settings.getStringListSettings() == null) {
+                return Collections.emptyList();
+            }
+            final List<String> modPaths = settings.getStringListSettings().get("modPaths");
+            return modPaths == null ? Collections.emptyList() : modPaths;
+        } catch (RuntimeException e) {
+            System.err.println("Could not read modPaths from clientsettings.json: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Arguments that make the game load this instance's Mods folder when clientsettings.json
+     * does not already list it.
+     */
+    @JsonIgnore
+    public List<String> getModPathArgs(final ObjectMapper objectMapper) {
+        final File modsPath = getModsPath();
+        for (final String modPath : getConfiguredModPaths(objectMapper)) {
+            final File file = new File(modPath);
+            if (file.isAbsolute() && isSameFile(file, modsPath)) {
+                return Collections.emptyList();
+            }
+        }
+
+        final List<String> result = new ArrayList<>();
+        result.add("--addModPath");
+        result.add(modsPath.toString());
+        return result;
+    }
+
+    private static boolean isSameFile(final File a, final File b) {
+        try {
+            return a.getCanonicalFile().equals(b.getCanonicalFile());
+        } catch (IOException e) {
+            return a.getAbsoluteFile().equals(b.getAbsoluteFile());
+        }
+    }
+
+    public void openWindows(final List<String> extraArgs) {
     	// Fonts might not work see bash script...
-        final String[] args = new String[]{
+        final List<String> args = new ArrayList<>(List.of(
                 new File(this.getRuntimePath(), "Vintagestory").toString(),
                 "--dataPath",
-                this.getDataPath().toString(),
-        };
+                this.getDataPath().toString()));
+        args.addAll(extraArgs);
         final ProcessBuilder builder = new ProcessBuilder(args);
         try {
             final Process process = builder.start();
@@ -126,12 +183,12 @@ public class VintageStoryInstance {
         }
     }
     
-    public void openLinux() {
-        String[] args = new String[]{
+    public void openLinux(final List<String> extraArgs) {
+        final List<String> args = new ArrayList<>(List.of(
                 new File(this.getRuntimePath(), "run.sh").toString(),
                 "--dataPath",
-                this.getDataPath().toString(),
-        };
+                this.getDataPath().toString()));
+        args.addAll(extraArgs);
         final ProcessBuilder builder = new ProcessBuilder(args);
         try {
             final Process process = builder.start();
@@ -144,15 +201,15 @@ public class VintageStoryInstance {
         }
     }
 
-    public void openMac() {
-        String[] args = new String[]{
+    public void openMac(final List<String> extraArgs) {
+        final List<String> args = new ArrayList<>(List.of(
                 "open",
                 "-n",
                 this.getRuntimePath().toString(),
                 "--args",
                 "--dataPath",
-                this.getDataPath().toString(),
-        };
+                this.getDataPath().toString()));
+        args.addAll(extraArgs);
         final ProcessBuilder builder = new ProcessBuilder(args);
         try {
             final Process process = builder.start();

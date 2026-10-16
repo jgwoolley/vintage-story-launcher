@@ -21,7 +21,7 @@ public class InstanceInfoPage {
 		final Button button = new Button("Open");
 		button.setOnAction(x -> {
 			context.getVolumeProperty().play();
-			instance.open();
+			instance.open(context.getObjectMapper());
 		});
 		button.setMaxWidth(Double.MAX_VALUE);
 		VBox.setVgrow(button, Priority.ALWAYS);
@@ -73,6 +73,7 @@ public class InstanceInfoPage {
 		values.put("Runtime Path", instance.getRuntimePath().toString());
 		values.put("Data Path", instance.getDataPath().toString());
 		values.put("Last Open", instance.getLastOpen().toString());
+		values.put("Mod Paths", describeModPaths(context, instance));
 
 		final TableView<Map.Entry<String, String>> table = new TableView<>(
 				FXCollections.observableArrayList(values.entrySet()));
@@ -81,6 +82,27 @@ public class InstanceInfoPage {
 		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
 		return table;
+	}
+
+	private static String describeModPaths(final Context context, final VintageStoryInstance instance) {
+		final StringBuilder builder = new StringBuilder();
+		for (final String modPath : instance.getConfiguredModPaths(context.getObjectMapper())) {
+			if (builder.length() > 0) {
+				builder.append("; ");
+			}
+			builder.append(modPath);
+			final File file = new File(modPath);
+			if (file.isAbsolute() && !file.isDirectory()) {
+				builder.append(" (missing)");
+			}
+		}
+		if (!instance.getModPathArgs(context.getObjectMapper()).isEmpty()) {
+			if (builder.length() > 0) {
+				builder.append("; ");
+			}
+			builder.append(instance.getModsPath()).append(" (added at launch)");
+		}
+		return builder.toString();
 	}
 
 	public static void create(final Context context, final VintageStoryInstance instance) {

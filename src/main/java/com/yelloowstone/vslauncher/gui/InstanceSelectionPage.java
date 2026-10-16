@@ -105,7 +105,7 @@ public class InstanceSelectionPage {
                             final VintageStoryInstance instance = items.get(getIndex());
                             openButton.setOnAction(x -> {
                             	context.getVolumeProperty().play();
-                                instance.open();
+                                instance.open(context.getObjectMapper());
                             });
                             moreButton.setOnAction(x -> {
                             	context.getVolumeProperty().play();
@@ -150,7 +150,7 @@ public class InstanceSelectionPage {
                 return;
             }
 
-            sorted.get(0).open();
+            sorted.get(0).open(context.getObjectMapper());
         });
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
