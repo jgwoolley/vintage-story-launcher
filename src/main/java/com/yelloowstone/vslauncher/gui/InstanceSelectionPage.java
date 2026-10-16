@@ -138,7 +138,7 @@ public class InstanceSelectionPage {
     }
 
     public static Button createLoadLastInstanceButton(final Context context) {
-        final SortedList<VintageStoryInstance> sorted = context.getInstances().sorted((a, b) -> a.getLastOpen().compareTo(b.getLastOpen()));
+        final SortedList<VintageStoryInstance> sorted = context.getInstances().sorted((a, b) -> b.getLastOpen().compareTo(a.getLastOpen()));
         final VintageStoryInstance instance = sorted == null || sorted.isEmpty() ? null: sorted.get(0);
         final String text = "Load Last Instance (" + (instance == null ? "None": sorted.get(0).getName()) + ")";
 
