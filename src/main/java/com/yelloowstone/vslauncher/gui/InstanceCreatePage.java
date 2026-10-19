@@ -8,6 +8,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -39,11 +40,22 @@ public class InstanceCreatePage {
         final TextField nameField = new TextField();
         final ObjectProperty<File> dataPathFormProperty = new SimpleObjectProperty<>();
         final ObjectProperty<File> runtimePathFormProperty = new SimpleObjectProperty<>();
+        final ObjectProperty<File> modPathFormProperty = new SimpleObjectProperty<>();
+        final ObservableList<File> modDirs = context.getModDirs();
 
+        // Picking an instance path defaults the mod path to its Mods folder; it can still be changed.
         dataPathFormProperty.addListener(new ChangeListener<File>() {
             @Override
             public void changed(ObservableValue<? extends File> observableValue, File oldValue, File newValue) {
+                if(newValue == null) {
+                    return;
+                }
                 nameField.setText(newValue.getName());
+                final File defaultMods = new File(newValue, "Mods");
+                if(!modDirs.contains(defaultMods)) {
+                    modDirs.add(defaultMods);
+                }
+                modPathFormProperty.set(defaultMods);
             }
         });
 
@@ -66,18 +78,23 @@ public class InstanceCreatePage {
                 new File(System.getProperty("user.home"), "/Documents/VSInstances"),
         }, context.getDataDirs(), dataPathFormProperty);
 
-        final Button submitButton = new Button("Submit");
+        final HBox modPathForm = FileButtonLabel.create(context,"Mod Path", new File[] {
+                new File(System.getProperty("user.home"), "/Documents/VSInstances"),
+        }, modDirs, modPathFormProperty);
+
+        final Button submitButton = Icons.button("Submit");
         submitButton.setOnAction(x -> {
         	context.getVolumeProperty().play();
             final String name = nameField.getText();
             final File runtimePath = runtimePathFormProperty.get();
             final File dataPath = dataPathFormProperty.get();
+            final File modPath = modPathFormProperty.get();
 
             if(name == null || name.isEmpty() || runtimePath == null || !runtimePath.isDirectory() || dataPath == null || !dataPath.isDirectory()) {
                 return;
             }
 
-            context.getInstances().add(new VintageStoryInstance(name, runtimePath, dataPath));
+            context.getInstances().add(new VintageStoryInstance(name, runtimePath, dataPath, modPath));
 
             InstanceSelectionPage.create(context);
         });
@@ -87,6 +104,6 @@ public class InstanceCreatePage {
         final Button backButton = BackButton.create(context);
 
         context.getRootNode().getChildren().clear();
-        context.getRootNode().getChildren().addAll(instanceNameForm, runtimePathForm, dataPathForm, submitButton, backButton);
+        context.getRootNode().getChildren().addAll(instanceNameForm, runtimePathForm, dataPathForm, modPathForm, submitButton, backButton);
     }
 }

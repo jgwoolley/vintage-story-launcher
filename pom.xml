@@ -4,9 +4,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.yelloowstone.nf2t</groupId>
 	<artifactId>vintagestory-launcher</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<properties>
-		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+		<!-- Maven timestamps are always UTC; keep the zone marker so the launcher can convert to local time -->
+		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
@@ -64,6 +65,17 @@
 			</resource>
 			<resource>
 				<directory>src/main/resources/audio</directory>
+				<filtering>false</filtering>
+			</resource>
+			<resource>
+				<directory>icons</directory>
+				<includes>
+					<include>icon-*.png</include>
+				</includes>
+				<filtering>false</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources/schema</directory>
 				<filtering>false</filtering>
 			</resource>
 			<resource>

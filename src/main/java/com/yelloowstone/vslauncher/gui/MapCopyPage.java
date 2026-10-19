@@ -15,7 +15,7 @@ import javafx.util.StringConverter;
 public class MapCopyPage {
 	
 	public static Button createBackButton(final Context context, final VintageStoryInstance instance) {
-		final Button button = new Button("Back");
+		final Button button = Icons.button("Back");
 		button.setOnAction(x -> {
 			context.getVolumeProperty().play();
 			MapsInfoPage.create(context, instance);
@@ -26,7 +26,7 @@ public class MapCopyPage {
 	}
 	
 	public static Button createMergeButton(final Context context, final VintageStoryInstance instance) {
-		final Button button = new Button("Merge");
+		final Button button = Icons.button("Merge");
 		button.setDisable(true);
 		button.setMaxWidth(Double.MAX_VALUE);
 		VBox.setVgrow(button, Priority.ALWAYS);

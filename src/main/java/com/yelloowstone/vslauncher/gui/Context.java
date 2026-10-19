@@ -1,5 +1,7 @@
 package com.yelloowstone.vslauncher.gui;
 
+import com.yelloowstone.vslauncher.MapRegistry;
+import com.yelloowstone.vslauncher.Settings;
 import com.yelloowstone.vslauncher.VintageStoryInstance;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -25,6 +27,9 @@ public class Context {
     private final VBox rootNode;
     private final File configHome;
     private final AudioClipProperty clickAudioClip;
+    private final MapRegistry mapRegistry;
+    private final Settings settings;
+    private final File settingsFile;
 
     
     public Context(final Stage stage, final VBox rootNode) {
@@ -63,11 +68,27 @@ public class Context {
             e.printStackTrace();
         }
         
+        this.settingsFile = new File(configHome, "settings.json");
+        this.settings = Settings.load(settingsFile, mapper);
+        HumanTime.configure(settings);
+        this.mapRegistry = new MapRegistry(new File(configHome, "maps.json"), mapper);
         this.clickAudioClip = new AudioClipProperty(Context.class.getResource("/click.wav"));
     }
 
     public VBox getRootNode() {
         return rootNode;
+    }
+
+    public Settings getSettings() {
+        return settings;
+    }
+
+    public void saveSettings() {
+        settings.save(settingsFile, mapper);
+    }
+
+    public MapRegistry getMapRegistry() {
+        return mapRegistry;
     }
 
     public ObservableList<VintageStoryInstance> getInstances() {
@@ -145,6 +166,23 @@ public class Context {
         }
 
         return FXCollections.observableArrayList(dataDirs);
+    }
+
+    public ObservableList<File> getModDirs() {
+        final Set<File> modDirs = new HashSet<>();
+
+        for(final var instance: this.getInstances()) {
+            modDirs.add(instance.getModsPath());
+        }
+
+        for(final File dataDir: this.getDataDirs()) {
+            final File modsDir = new File(dataDir, "Mods");
+            if(modsDir.isDirectory()) {
+                modDirs.add(modsDir);
+            }
+        }
+
+        return FXCollections.observableArrayList(modDirs);
     }
 
     public Stage getStage() {
