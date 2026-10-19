@@ -18,10 +18,10 @@ import javafx.scene.layout.VBox;
 
 public class InstanceInfoPage {
 	public static Button createOpenButton(final Context context, final VintageStoryInstance instance) {
-		final Button button = new Button("Open");
+		final Button button = Icons.button("Open");
 		button.setOnAction(x -> {
 			context.getVolumeProperty().play();
-			instance.open(context.getObjectMapper());
+			instance.open(context.getObjectMapper(), context.getMapRegistry());
 		});
 		button.setMaxWidth(Double.MAX_VALUE);
 		VBox.setVgrow(button, Priority.ALWAYS);
@@ -29,7 +29,7 @@ public class InstanceInfoPage {
 	}
 
 	public static Button createOpenFileButton(final Context context, final String textField, final File file) {
-		final Button button = new Button(textField);
+		final Button button = Icons.button(textField);
 		button.setOnAction(x -> {
 			context.getVolumeProperty().play();
 			Context.openFile(file);
@@ -40,10 +40,21 @@ public class InstanceInfoPage {
 	}
 
 	public static Button createOpenMapsButton(final Context context, final VintageStoryInstance instance) {
-		final Button button = new Button("Open Maps");
+		final Button button = Icons.button("Open Maps");
 		button.setOnAction(x -> {
 			context.getVolumeProperty().play();
 			MapsInfoPage.create(context, instance);
+		});
+		button.setMaxWidth(Double.MAX_VALUE);
+		VBox.setVgrow(button, Priority.ALWAYS);
+		return button;
+	}
+
+	public static Button createManageModsButton(final Context context, final VintageStoryInstance instance) {
+		final Button button = Icons.button("Manage Mods");
+		button.setOnAction(x -> {
+			context.getVolumeProperty().play();
+			ModsPage.create(context, instance);
 		});
 		button.setMaxWidth(Double.MAX_VALUE);
 		VBox.setVgrow(button, Priority.ALWAYS);
@@ -72,7 +83,10 @@ public class InstanceInfoPage {
 		values.put("version", instance.getVersion());
 		values.put("Runtime Path", instance.getRuntimePath().toString());
 		values.put("Data Path", instance.getDataPath().toString());
-		values.put("Last Open", instance.getLastOpen().toString());
+		values.put("Last Open", HumanTime.describe(instance.getLastOpen()));
+		values.put("Mod Path", instance.getModsPath()
+				+ (instance.getModsPath().isDirectory() ? "" : " (missing)")
+				+ (instance.getModPath() == null ? " (default)" : ""));
 		values.put("Mod Paths", describeModPaths(context, instance));
 
 		final TableView<Map.Entry<String, String>> table = new TableView<>(
@@ -114,7 +128,7 @@ public class InstanceInfoPage {
 		final TableView<Map.Entry<String, String>> table = createInstanceTable(context, instance);
 
 		context.getRootNode().getChildren().clear();
-		context.getRootNode().getChildren().addAll(table, openButton, openRuntimeButton, openDataButton, openMapsButton,
+		context.getRootNode().getChildren().addAll(table, openButton, openRuntimeButton, openDataButton, createManageModsButton(context, instance), openMapsButton,
 				backButton);
 	}
 }

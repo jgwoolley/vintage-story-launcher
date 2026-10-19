@@ -6,7 +6,7 @@ import javafx.scene.layout.VBox;
 
 public class BackButton {
     public static Button create(Context context) {
-        final Button button = new Button("Back");
+        final Button button = Icons.button("Back");
         button.setOnAction(x -> {
         	context.getVolumeProperty().play();
             InstanceSelectionPage.create(context);

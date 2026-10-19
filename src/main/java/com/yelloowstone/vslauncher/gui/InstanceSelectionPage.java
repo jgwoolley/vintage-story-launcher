@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import com.yelloowstone.vslauncher.VintageStoryInstance;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.control.Button;
@@ -16,7 +16,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
-import javafx.util.Duration;
 
 public class InstanceSelectionPage {
 
@@ -44,13 +43,10 @@ public class InstanceSelectionPage {
         return versionCol;
     }
 
-    public static TableColumn<VintageStoryInstance, String> createLastOpenColumn() {
-        final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Last Open");
-        versionCol.setCellValueFactory(data ->
-        {
-            final LocalDateTime value = data.getValue().getLastOpen();
-            return new SimpleStringProperty(value == null ? "" : value.toString());
-        });
+    public static TableColumn<VintageStoryInstance, LocalDateTime> createLastOpenColumn() {
+        final TableColumn<VintageStoryInstance, LocalDateTime> versionCol = new TableColumn<>("Last Open");
+        versionCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getLastOpen()));
+        versionCol.setCellFactory(HumanTime.cellFactory());
 
         return versionCol;
     }
@@ -78,8 +74,8 @@ public class InstanceSelectionPage {
             public TableCell<VintageStoryInstance, Void> call(TableColumn<VintageStoryInstance, Void> vintageStoryInstanceVoidTableColumn) {
                 final HBox buttonBar = new HBox();
 
-                final Button openButton = new Button("Open");
-                final Button moreButton = new Button("More");
+                final Button openButton = Icons.button("Open");
+                final Button moreButton = Icons.button("More");
 
                 // 2. Allow both buttons to grow equally
                 HBox.setHgrow(openButton, Priority.ALWAYS);
@@ -105,7 +101,7 @@ public class InstanceSelectionPage {
                             final VintageStoryInstance instance = items.get(getIndex());
                             openButton.setOnAction(x -> {
                             	context.getVolumeProperty().play();
-                                instance.open(context.getObjectMapper());
+                                instance.open(context.getObjectMapper(), context.getMapRegistry());
                             });
                             moreButton.setOnAction(x -> {
                             	context.getVolumeProperty().play();
@@ -143,14 +139,14 @@ public class InstanceSelectionPage {
         final String text = "Load Last Instance (" + (instance == null ? "None": sorted.get(0).getName()) + ")";
 
 
-        final Button button = new Button(text);
+        final Button button = Icons.button(text);
         button.setOnAction(e -> {
         	context.getVolumeProperty().play();
             if(context.getInstances().isEmpty()) {
                 return;
             }
 
-            sorted.get(0).open(context.getObjectMapper());
+            sorted.get(0).open(context.getObjectMapper(), context.getMapRegistry());
         });
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
@@ -159,7 +155,7 @@ public class InstanceSelectionPage {
     }
 
     public static Button createNewInstanceButton(final Context context) {
-        final Button button = new Button("Create New Instance");
+        final Button button = Icons.button("Create New Instance");
         button.setOnAction(e -> {
         	context.getVolumeProperty().play();
             InstanceCreatePage.create(context);
@@ -171,7 +167,7 @@ public class InstanceSelectionPage {
     }
 
     public static Button createCopyButton(final Context context) {
-        final Button button = new Button("Copy Instance Data");
+        final Button button = Icons.button("Copy Instance Data");
         button.setOnAction(e -> {
         	context.getVolumeProperty().play();
             InstanceCopyPage.create(context);
@@ -183,29 +179,9 @@ public class InstanceSelectionPage {
     }
     
     public static Button createExitButton(Context context) {
-        final Button button = new Button("Exit");
-        button.setOnAction(event -> {
-        	context.getVolumeProperty().play();
- 
-         System.out.println("Close button clicked. App will close in 2 seconds.");
-            
-            // Create a PauseTransition for a delay
-            PauseTransition delay = new PauseTransition(Duration.seconds(1.25));
-            
-            // Set the action to perform when the delay finishes
-            // The action is to call Platform.exit() to properly shut down the JavaFX application
-            delay.setOnFinished(e -> {
-                System.out.println("Delay finished. Exiting application.");
-                Platform.exit(); // Preferred way to exit a JavaFX application
-            });
-            
-            // Start the delay
-            delay.play();
-            
-            // Optional: Disable the button immediately to prevent multiple clicks during the delay
-            button.setDisable(true);
-        	
-        });
+        final Button button = Icons.button("Exit");
+        // No click sound here: the sound is played on a background thread and exiting at once would cut it off
+        button.setOnAction(event -> Platform.exit());
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
 
@@ -225,7 +201,7 @@ public class InstanceSelectionPage {
     }
 
 	private static Button createOpenSettingsButton(Context context) {
-        final Button button = new Button("Settings");
+        final Button button = Icons.button("Settings");
         button.setOnAction(event -> {
         	context.getVolumeProperty().play();
         	SettingsPage.create(context);

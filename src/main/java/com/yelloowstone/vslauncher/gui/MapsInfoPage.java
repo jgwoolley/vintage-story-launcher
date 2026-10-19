@@ -3,7 +3,10 @@ package com.yelloowstone.vslauncher.gui;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 
+import com.yelloowstone.vslauncher.SaveGameScanner;
+import com.yelloowstone.vslauncher.SaveGameScanner.SaveInfo;
 import com.yelloowstone.vslauncher.VintageStoryInstance;
 import com.yelloowstone.vslauncher.VintageStoryMap;
 
@@ -20,7 +23,7 @@ import javafx.util.Callback;
 
 public class MapsInfoPage {
 	public static Button createBackButton(final Context context, final VintageStoryInstance instance) {
-		final Button button = new Button("Back");
+		final Button button = Icons.button("Back");
 		button.setOnAction(x -> {
 			context.getVolumeProperty().play();
 			InstanceInfoPage.create(context, instance);
@@ -31,17 +34,79 @@ public class MapsInfoPage {
 	}
 
 	public static TableColumn<VintageStoryMap, String> createFileColumn() {
-		final TableColumn<VintageStoryMap, String> versionCol = new TableColumn<>("Maps");
+		final TableColumn<VintageStoryMap, String> versionCol = new TableColumn<>("File");
 		versionCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getFile().getName()));
 
 		return versionCol;
 	}
 
+	/** What the map is: a save of yours, a server, or unknown. */
+	public static String describeSource(final Context context, final Map<String, SaveInfo> saves,
+			final VintageStoryMap map) {
+		final SaveInfo save = saves.get(map.getId().toLowerCase());
+		if (save != null) {
+			return "Singleplayer: " + save.displayName();
+		}
+		final String server = context.getMapRegistry().getServer(map.getId());
+		return server != null ? "Server: " + server : "Unknown";
+	}
+
+	/** The name you gave the map, else the save's name, else the server, else the file. */
+	public static String displayName(final Context context, final Map<String, SaveInfo> saves,
+			final VintageStoryMap map) {
+		final String name = context.getMapRegistry().getName(map.getId());
+		if (name != null) {
+			return name;
+		}
+		final SaveInfo save = saves.get(map.getId().toLowerCase());
+		if (save != null) {
+			return save.displayName();
+		}
+		final String server = context.getMapRegistry().getServer(map.getId());
+		return server != null ? server : "(unnamed)";
+	}
+
+	public static TableColumn<VintageStoryMap, String> createNameColumn(final Context context,
+			final Map<String, SaveInfo> saves) {
+		final TableColumn<VintageStoryMap, String> column = new TableColumn<>("Name");
+		column.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(displayName(context, saves, data.getValue())));
+		return column;
+	}
+
+	public static TableColumn<VintageStoryMap, String> createSourceColumn(final Context context,
+			final Map<String, SaveInfo> saves) {
+		final TableColumn<VintageStoryMap, String> column = new TableColumn<>("Source");
+		column.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(describeSource(context, saves, data.getValue())));
+		return column;
+	}
+
 	public static TableColumn<VintageStoryMap, Long> createSizeColumn() {
 		final TableColumn<VintageStoryMap, Long> versionCol = new TableColumn<>("Size");
+		// The value stays a Long so sorting is numeric; only the rendering is human readable.
 		versionCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getFile().length()));
+		versionCol.setCellFactory(column -> new TableCell<>() {
+			@Override
+			protected void updateItem(final Long size, final boolean empty) {
+				super.updateItem(size, empty);
+				setText(empty || size == null ? null : formatSize(size));
+			}
+		});
 
 		return versionCol;
+	}
+
+	public static String formatSize(final long bytes) {
+		if (bytes < 1024) {
+			return bytes + " B";
+		}
+		final String[] units = { "KiB", "MiB", "GiB", "TiB" };
+		double value = bytes;
+		int unit = -1;
+		while (value >= 1024 && unit < units.length - 1) {
+			value /= 1024;
+			unit++;
+		}
+		return String.format("%.1f %s", value, units[unit]);
 	}
 	
 	public static TableColumn<VintageStoryMap, LocalDateTime> createLastOpenColumn() {
@@ -52,6 +117,7 @@ public class MapsInfoPage {
 			
 			return new ReadOnlyObjectWrapper<>(value);
 		});
+		versionCol.setCellFactory(HumanTime.cellFactory());
 
 		return versionCol;
 	}
@@ -63,8 +129,8 @@ public class MapsInfoPage {
             public TableCell<VintageStoryMap, Void> call(TableColumn<VintageStoryMap, Void> vintageStoryInstanceVoidTableColumn) {
                 final HBox buttonBar = new HBox();
 
-                final Button openButton = new Button("Merge");
-                final Button moreButton = new Button("More");
+                final Button openButton = Icons.button("Merge");
+                final Button moreButton = Icons.button("More");
 
                 // 2. Allow both buttons to grow equally
                 HBox.setHgrow(openButton, Priority.ALWAYS);
@@ -111,6 +177,9 @@ public class MapsInfoPage {
 			final VintageStoryInstance instance) {
 
 		final TableView<VintageStoryMap> table = new TableView<>(FXCollections.observableArrayList(instance.getMaps()));
+		final Map<String, SaveInfo> saves = SaveGameScanner.scan(instance.getDataPath());
+		table.getColumns().add(createNameColumn(context, saves));
+		table.getColumns().add(createSourceColumn(context, saves));
 		table.getColumns().add(createFileColumn());
 		table.getColumns().add(createSizeColumn());
 		table.getColumns().add(createLastOpenColumn());

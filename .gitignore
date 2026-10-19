@@ -10,3 +10,7 @@ public
 linux-resources
 output
 extracted_files
+*.deb
+# Sample data copied in for investigation
+/Maps/
+/Logs/

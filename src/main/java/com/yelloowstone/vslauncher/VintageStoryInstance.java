@@ -12,6 +12,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,15 +26,28 @@ public class VintageStoryInstance {
     private final String name;
     private final File runtimePath;
     private final File dataPath;
+    /** Null for instances saved before the mod path was configurable; see {@link #getModsPath()}. */
+    private final File modPath;
 
     @JsonCreator
     public VintageStoryInstance(
             @JsonProperty("name") final String name,
             @JsonProperty("runtimePath") final File runtimePath,
-            @JsonProperty("dataPath") final File dataPath) {
+            @JsonProperty("dataPath") final File dataPath,
+            @JsonProperty("modPath") final File modPath) {
         this.name = name;
         this.runtimePath = runtimePath;
         this.dataPath = dataPath;
+        this.modPath = modPath;
+    }
+
+    public VintageStoryInstance(final String name, final File runtimePath, final File dataPath) {
+        this(name, runtimePath, dataPath, null);
+    }
+
+    @JsonProperty("modPath")
+    public File getModPath() {
+        return this.modPath;
     }
 
     public String getName() {
@@ -98,22 +112,31 @@ public class VintageStoryInstance {
         return OS.contains("nix") || OS.contains("nux") || OS.contains("aix");
     }
 
-    public void open(final ObjectMapper objectMapper) {
+    public void open(final ObjectMapper objectMapper, final MapRegistry maps) {
         final List<String> modPathArgs = getModPathArgs(objectMapper);
-        if (isWindows()) {
-        	openWindows(modPathArgs);
-        } else if (isMac()) {
-            openMac(modPathArgs);
-        } else if (isUnix()) {
-            openLinux(modPathArgs);
-        } else {
-            System.out.println("Detected: Unknown OS");
-        }
+        // The launch methods wait for the game to exit, so run them off the UI thread or the
+        // launcher window stops responding for as long as the game is open.
+        final Thread thread = new Thread(() -> {
+            final Map<String, Long> mapsBefore = MapRegistry.snapshotMaps(dataPath);
+            if (isWindows()) {
+                openWindows(modPathArgs);
+            } else if (isMac()) {
+                openMac(modPathArgs);
+            } else if (isUnix()) {
+                openLinux(modPathArgs);
+            } else {
+                System.out.println("Detected: Unknown OS");
+            }
+            // The launch methods return once the game has exited: note which server any new map belongs to
+            maps.recordSession(dataPath, mapsBefore);
+        }, "vs-game-" + name);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     @JsonIgnore
     public File getModsPath() {
-        return new File(this.dataPath, "Mods");
+        return this.modPath != null ? this.modPath : new File(this.dataPath, "Mods");
     }
 
     /**
@@ -172,6 +195,7 @@ public class VintageStoryInstance {
                 this.getDataPath().toString()));
         args.addAll(extraArgs);
         final ProcessBuilder builder = new ProcessBuilder(args);
+        builder.inheritIO(); // an unread output pipe fills up and eventually stalls the game
         try {
             final Process process = builder.start();
             final int exitCode = process.waitFor();
@@ -190,6 +214,7 @@ public class VintageStoryInstance {
                 this.getDataPath().toString()));
         args.addAll(extraArgs);
         final ProcessBuilder builder = new ProcessBuilder(args);
+        builder.inheritIO(); // an unread output pipe fills up and eventually stalls the game
         try {
             final Process process = builder.start();
             final int exitCode = process.waitFor();
@@ -211,6 +236,7 @@ public class VintageStoryInstance {
                 this.getDataPath().toString()));
         args.addAll(extraArgs);
         final ProcessBuilder builder = new ProcessBuilder(args);
+        builder.inheritIO(); // an unread output pipe fills up and eventually stalls the game
         try {
             final Process process = builder.start();
             final int exitCode = process.waitFor();
@@ -223,9 +249,9 @@ public class VintageStoryInstance {
     }
 
     public void copy(VintageStoryInstance other) {
-        final File sourceMods = new File(this.getDataPath(), "Mods");
+        final File sourceMods = this.getModsPath();
         sourceMods.mkdirs();
-        final File destinationMods = new File(other.getDataPath(), "Mods");
+        final File destinationMods = other.getModsPath();
         destinationMods.mkdirs();
 
         final File[] sourceModFiles = sourceMods.listFiles((file, name) -> name.endsWith(".zip"));

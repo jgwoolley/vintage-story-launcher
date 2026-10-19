@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/jgwoolley/vintage-story-wiki/vs-manifest.schema.json",
+  "title": "Vintage Story Wiki manifest",
+  "description": "vs-manifest.json: what `npm run download` fetches (the vanilla dedicated server and mods) and extra items/blocks `npm run ingest` should always include. Mirrors the VsManifest interface in src/ingest/types.ts; keep the two in sync.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["serverBranch", "serverVersion", "mods"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path to this schema, so editors like VS Code validate and autocomplete the file."
+    },
+    "serverBranch": {
+      "type": "string",
+      "description": "cdn.vintagestory.at release channel the server is downloaded from.",
+      "examples": ["stable", "unstable"],
+      "default": "stable",
+      "minLength": 1
+    },
+    "serverVersion": {
+      "type": "string",
+      "description": "Vanilla dedicated server version to download, e.g. \"1.22.7\". Changing it changes the CI cache key, so the next build re-downloads everything.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9.]+)?$",
+      "examples": ["1.22.7"]
+    },
+    "mods": {
+      "type": "array",
+      "description": "Mods from mods.vintagestory.at to download and ingest alongside the vanilla game. A mod present in Mods/ but missing here is skipped by ingest.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["modid"],
+        "properties": {
+          "modid": {
+            "type": "string",
+            "description": "The mod's id on mods.vintagestory.at (its modinfo.json `modid`), e.g. \"betterruins\".",
+            "pattern": "^[A-Za-z0-9_]+$"
+          },
+          "version": {
+            "type": "string",
+            "description": "Release version to pin, exactly as listed on the mod's page (e.g. \"0.6.4\"). Omit to take the latest release.",
+            "minLength": 1
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "includeItems": {
+      "type": "array",
+      "description": "Items/blocks to always give an /items/ page, even when no recipe, drop table, worldgen rule, trade list, or NPC dialogue reaches them (e.g. static translocators). Each entry is a \"domain:code\" glob matched against every concrete item/block variant code; `*` is a wildcard. Leaving out the \"domain:\" prefix matches any domain. Ingest warns about patterns that match nothing.",
+      "items": {
+        "type": "string",
+        "description": "\"domain:code\" glob, e.g. \"survival:statictranslocator-*\". Vanilla items/blocks mostly live in the \"survival\" or \"game\" domain; mod content uses the mod's own domain.",
+        "pattern": "^([a-z0-9_-]+:)?[^\\s:]+$",
+        "examples": ["survival:statictranslocator-*", "survival:teleporterbase", "game:*"]
+      },
+      "uniqueItems": true
+    }
+  }
+}

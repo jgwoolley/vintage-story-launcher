@@ -37,7 +37,7 @@ public class InstanceCopyPage {
 
     public static Button createCopyModsButton(final Context context, final ObjectProperty<VintageStoryInstance> sourceFormProperty, final ObjectProperty<VintageStoryInstance> destinationFormProperty) {
 
-        final Button button = new Button("Copy Mods");
+        final Button button = Icons.button("Copy Mods");
         button.setOnAction(e -> {
         	context.getVolumeProperty().play();
             final VintageStoryInstance source = sourceFormProperty.get();
@@ -54,7 +54,7 @@ public class InstanceCopyPage {
     }
 
     public static Button createMergeMapsButton(final Context context, final ObjectProperty<VintageStoryInstance> sourceFormProperty, final ObjectProperty<VintageStoryInstance> destinationFormProperty) {
-        final Button button = new Button("Merge Maps");
+        final Button button = Icons.button("Merge Maps");
         button.setOnAction(e -> {
         	context.getVolumeProperty().play();
         });

@@ -22,7 +22,7 @@ public class FileButtonLabel {
             }
         }
 
-        final Button button = new Button("Add");
+        final Button button = Icons.button("Add");
         button.setOnAction(x -> {
         	context.getVolumeProperty().play();
             final File selectedFile = directoryChooser.showDialog(context.getStage());
