@@ -42,6 +42,8 @@ public class Icons {
             Map.entry("Open Folder", FOLDER),
             Map.entry("Edit", EDIT),
             Map.entry("Edit Mod Paths", EDIT),
+            Map.entry("Switch to Server", EDIT),
+            Map.entry("Switch to Client", EDIT),
             Map.entry("Remove", REMOVE),
             Map.entry("Move to Top", UPGRADE),
             Map.entry("Done", CHECK),

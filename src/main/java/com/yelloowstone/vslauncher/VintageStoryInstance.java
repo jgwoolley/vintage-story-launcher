@@ -41,7 +41,7 @@ public class VintageStoryInstance {
      * A dedicated server's data folder rather than a game client: only {@link #name} and {@link #dataPath} are used,
      * everything else comes from its {@code serverconfig.json} and save ({@link ServerConfig}). It is never launched.
      */
-    private final boolean server;
+    private boolean server;
     /** For a server: the client map (a {@code Maps/<savegame id>.db} of a client instance) last shown with it. */
     private File serverMapPath;
 
@@ -70,10 +70,10 @@ public class VintageStoryInstance {
         this.launchArgs = launchArgs;
         this.wrapper = wrapper;
         this.environment = environment;
-        // An instance saved before server support whose folder is a server's (serverconfig.json, no clientsettings.json)
-        // is a server: opened as a client it has no player and no game settings.
-        this.server = server != null ? server
-                : dataPath != null && !new File(dataPath, "clientsettings.json").isFile() && ServerConfig.isServerDataPath(dataPath);
+        // A folder that is plainly a server's (serverconfig.json, no clientsettings.json) is a server even when saved as
+        // a client ("server": false is written for every client, including one added before server support): as a
+        // client it has no player, no game settings and nothing to launch.
+        this.server = Boolean.TRUE.equals(server) || looksLikeServer(dataPath);
         this.serverMapPath = serverMapPath;
     }
 
@@ -88,6 +88,16 @@ public class VintageStoryInstance {
 
     public boolean isServer() {
         return this.server;
+    }
+
+    /** Switches between server and client (the info page's Type row); a server's folder stays a server on reload. */
+    public void setServer(final boolean server) {
+        this.server = server;
+    }
+
+    /** A dedicated server's data folder: it has a serverconfig.json and no game client has used it (no clientsettings.json). */
+    public static boolean looksLikeServer(final File dataPath) {
+        return dataPath != null && ServerConfig.isServerDataPath(dataPath) && !new File(dataPath, "clientsettings.json").isFile();
     }
 
     public File getServerMapPath() {

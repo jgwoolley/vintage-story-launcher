@@ -93,6 +93,8 @@ public class InstanceInfoPage {
 					+ "plus the launcher's own (added at launch). Use Edit to change the launcher's."),
 			Map.entry("Player Name", "The player name saved in the game's clientsettings.json (calculated)."),
 			Map.entry("Version", "The game version of the runtime path (calculated)."),
+			Map.entry("Type", "A game client (launched, has mods and maps) or a dedicated server's data folder (only its world "
+					+ "is shown, over a client's map). A folder with serverconfig.json and no clientsettings.json is always a server."),
 			Map.entry("Server Data Path", "The dedicated server's data folder: serverconfig.json, Saves/ and Playerdata/. "
 					+ "Changing it only points the instance elsewhere; no files are moved."),
 			Map.entry("Server Name", "ServerName from the server's serverconfig.json (calculated)."),
@@ -167,6 +169,30 @@ public class InstanceInfoPage {
 		return rows;
 	}
 
+	/** Client or server, why, and a button to switch when the folder allows it. */
+	private static Row createTypeRow(final Context context, final VintageStoryInstance instance) {
+		final File dataPath = instance.getDataPath();
+		final boolean hasServerConfig = dataPath != null && ServerConfig.isServerDataPath(dataPath);
+		final boolean hasClientSettings = dataPath != null && new File(dataPath, "clientsettings.json").isFile();
+		final Runnable switchType = () -> {
+			instance.setServer(!instance.isServer());
+			context.instanceChanged(instance);
+			create(context, instance);
+		};
+		if (instance.isServer()) {
+			if (VintageStoryInstance.looksLikeServer(dataPath)) {
+				return new Row("Type", "Server (the folder has serverconfig.json and no clientsettings.json)", null);
+			}
+			return new Row("Type", "Server (chosen by hand)", null,
+					List.of(new Action("Switch to Client", () -> switchType.run())));
+		}
+		final String why = !hasServerConfig ? "no serverconfig.json in the data path, so it cannot be a server"
+				: hasClientSettings ? "the folder has serverconfig.json but also a game client's clientsettings.json"
+				: "game client";
+		return new Row("Type", "Game client (" + why + ")", null,
+				hasServerConfig ? List.of(new Action("Switch to Server", () -> switchType.run())) : List.of());
+	}
+
 	private static TableView<Row> createInstanceTable(final Context context, final VintageStoryInstance instance) {
 		final List<Row> rows = new ArrayList<>();
 		rows.add(new Row("Name", instance.getName(), text -> {
@@ -176,6 +202,7 @@ public class InstanceInfoPage {
 				instance.setName(text.trim());
 			}
 		}));
+		rows.add(createTypeRow(context, instance));
 		if (instance.isServer()) {
 			rows.addAll(Errors.safe(() -> createServerRows(context, instance), List.of()));
 		} else {
