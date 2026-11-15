@@ -2,6 +2,72 @@
 
 All notable changes since 1.0.0. Versions follow `pom.xml`.
 
+## Unreleased
+
+### Servers
+- **Server instances.** **Add Server** adds a dedicated server's data folder by itself: its name, port and world are
+  read from `serverconfig.json` (a `SaveFileLocation` from another machine or a container is looked up in the folder's
+  `Saves/`). Server instances are never launched and are left out of Load Last Instance, the tray and copying.
+- **Server maps.** **Open Maps** on a server shows the full map page for its world: structures, schematics, players,
+  waypoints, translocators, traders... from the server's save, marked over a client instance's map of the same world
+  (found by the world ID in the map's file name; **Client Map** picks which, remembered per server, or **None** for
+  marks only). Spawn and player names come from the server, so relative coordinates are right.
+- A client map whose world belongs to a server instance shows that server as its source.
+- Picking a folder with **Add** on a create page now selects it.
+
+### Maps
+- **Structures.** A single player map's page lists the structures world generation has placed in the save (ruins,
+  traders, vugs, lakes, and modded ones such as Reliquiarum's shrines): search by part of the code or a pattern like
+  `*vugs`, sort by distance from spawn, click a row to jump there on the map (with the in-game `/tp` command), and see
+  them marked on the map (hover a mark for its name; **Show on map** turns the marks off). Read from the save's map
+  regions, so only explored land has them; server maps keep this on the server. The table shows 50 structures a
+  page (**Previous** / **Next**; sorting covers every page), and a row's Actions filter to
+  **Same Structure** or **Same Schematic** (combinable) until **Show All**.
+- **Players on the map.** The structures table also lists every player in a single player save at their last saved
+  position (named from `Playerdata/playerdata.json` or `clientsettings.json`), marked on the map as dots in a colour per player (shown
+  next to their name in the table, drawn above the jump marker); search
+  `player` to list only them.
+- **More in the table.** Story locations, players' spawn points, waypoints, last deaths, prospecting readings,
+  translocators (a dashed line joins a working one to where it leads; broken ones are grey) and traders (with their
+  name) are listed and marked too, each kind with its own mark, shown by the row in a new Type column. A checkbox per
+  kind (with counts, all on by default) replaces the Structures / Players toggles. The row button follows the kind:
+  **Same Player** lists a player's position, spawn point and death together; **Same Trader**, **Same Ore**, **Same
+  Title**. Translocators and traders come from a scan of every world chunk, which runs after the rest has loaded.
+- **Copy /tp** in each row's Actions copies the in-game teleport command (absolute coordinates, one block above a
+  point or on top of a structure) to the clipboard.
+- Clicking a mark on the map selects its row in the table, turning to the right page and scrolling to it; the map stays
+  where it is (the red marker moves to the mark). Where marks overlap, the one drawn on top is picked.
+- **Translocator links.** Selecting a working translocator frames both ends on the map, draws its link bright with a
+  ring on the far end, and the status line says where it leads and how far. Its row's **Show Pair** button lists only
+  that translocator and its other end.
+- **Command line save search.** `java -jar vintagestory-launcher-<version>.jar search <save> ...` runs the map page's
+  search without the window: on a save file, a data folder (also a dedicated server's) or a world / instance name,
+  with text, kind, same-as, schematic, translocator pair and distance filters, table / TSV / JSON / `/tp` output and
+  `--backup` to search the newest backup. `search --help` for the details.
+- Saves and maps the game or a server has open are now read live (plain read-only, which includes changes not yet
+  merged from the `-wal` file); closed ones are still opened `immutable`, which leaves no files behind.
+- Fixed: skipping a length-delimited protobuf field landed one byte short (only reached by the new readers).
+
+### Instances
+- **Instances are editable.** On the info page click a value to edit it in line: Name, Runtime Path, Data Path
+  (both must be existing folders; nothing is moved), plus new **Launch Arguments**, **Wrapper Command** (for
+  example `gamemoderun`) and **Environment** (`KEY=value` words). Wrapper and environment do not apply on macOS.
+  Calculated rows (Player Name, Version, Last Open, Mod Paths) are fixed.
+- The instance info page has an Actions column like the instance list: **Open** (folder) on the Runtime Path and Data Path
+  rows and **Edit** on the Mod Paths row. Open, Manage Mods, Open Maps and Back stay on their own lines.
+- **Merge Nf3t Data** on the Copy Instance Data page merges the source's `ModData/Nf3tData.json` (translocators,
+  waypoints, spawn positions of the Nf3t mods) into the destination's, using the mods' own rules: the destination
+  wins on conflicts, unknown translocator targets are filled in, and the destination file is backed up first.
+- **Multiple mod paths** per instance. **Edit Mod Paths** shows the paths from `clientsettings.json` (read-only,
+  the game owns them) and the launcher's own paths (edit, add, remove, move to top). Each launcher path is passed
+  with one `--addModPath` option (the game crashes when it is repeated; several folders after one option work on 1.22.7) unless the game already lists it; the first one is where the Mods page installs mods.
+  Existing single `modPath` entries in `config.json` are migrated automatically.
+- **Duplicate mod warning.** The Mods page now checks every folder the game loads (launcher mod paths, the
+  game's `clientsettings.json` paths, the runtime's `Mods`). A mod id found in more than one folder gets a
+  warning in the new Notice column and a banner: the game loads only the highest version and ignores the rest.
+- The Merge Maps page explains that only copies of the same world (same map file name) can be merged, and says
+  so when no other instance has one.
+
 ## 1.1.0
 
 ### Mods

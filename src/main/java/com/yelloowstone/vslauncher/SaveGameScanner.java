@@ -3,7 +3,6 @@ package com.yelloowstone.vslauncher;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -62,8 +61,8 @@ public class SaveGameScanner {
         return result;
     }
 
-    static SaveInfo read(final File file) {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + file.toURI() + "?mode=ro&immutable=1");
+    public static SaveInfo read(final File file) {
+        try (Connection connection = GameDatabase.open(file);
                 Statement statement = connection.createStatement();
                 ResultSet rs = statement.executeQuery("SELECT data FROM gamedata LIMIT 1")) {
             if (!rs.next()) {

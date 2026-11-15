@@ -30,7 +30,7 @@ public class InstanceSelectionPage {
     public static TableColumn<VintageStoryInstance, String> createVersionColumn() {
         final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Version");
         versionCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getVersion()));
+                new SimpleStringProperty(data.getValue().isServer() ? "Server" : data.getValue().getVersion()));
 
         return versionCol;
     }
@@ -99,9 +99,19 @@ public class InstanceSelectionPage {
                         } else {
                             final var items = this.getTableView().getItems();
                             final VintageStoryInstance instance = items.get(getIndex());
+                            // A server is never launched: its row opens its map instead
+                            final String label = instance.isServer() ? "Open Maps" : "Open";
+                            if (!label.equals(openButton.getText())) {
+                                openButton.setText(label);
+                                openButton.setGraphic(Icons.button(label).getGraphic());
+                            }
                             openButton.setOnAction(x -> {
                             	context.getVolumeProperty().play();
-                                instance.open(context.getObjectMapper(), context.getMapRegistry());
+                                if (instance.isServer()) {
+                                    ServerMapPage.create(context, instance);
+                                } else {
+                                    instance.open(context.getObjectMapper(), context.getMapRegistry());
+                                }
                             });
                             moreButton.setOnAction(x -> {
                             	context.getVolumeProperty().play();
@@ -134,7 +144,8 @@ public class InstanceSelectionPage {
     }
 
     public static Button createLoadLastInstanceButton(final Context context) {
-        final SortedList<VintageStoryInstance> sorted = context.getInstances().sorted((a, b) -> b.getLastOpen().compareTo(a.getLastOpen()));
+        final SortedList<VintageStoryInstance> sorted = context.getInstances().filtered(instance -> !instance.isServer())
+                .sorted((a, b) -> b.getLastOpen().compareTo(a.getLastOpen()));
         final VintageStoryInstance instance = sorted == null || sorted.isEmpty() ? null: sorted.get(0);
         final String text = "Load Last Instance (" + (instance == null ? "None": sorted.get(0).getName()) + ")";
 
@@ -142,7 +153,7 @@ public class InstanceSelectionPage {
         final Button button = Icons.button(text);
         button.setOnAction(e -> {
         	context.getVolumeProperty().play();
-            if(context.getInstances().isEmpty()) {
+            if(sorted.isEmpty()) {
                 return;
             }
 
@@ -159,6 +170,18 @@ public class InstanceSelectionPage {
         button.setOnAction(e -> {
         	context.getVolumeProperty().play();
             InstanceCreatePage.create(context);
+        });
+        button.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(button, Priority.ALWAYS);
+
+        return button;
+    }
+
+    public static Button createAddServerButton(final Context context) {
+        final Button button = Icons.button("Add Server");
+        button.setOnAction(e -> {
+        	context.getVolumeProperty().play();
+            ServerCreatePage.create(context);
         });
         button.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(button, Priority.ALWAYS);
@@ -192,12 +215,13 @@ public class InstanceSelectionPage {
         final Button loadLastInstanceButton = createLoadLastInstanceButton(context);
         final TableView<VintageStoryInstance> table = createInstanceTable(context);
         final Button newInstanceButton = createNewInstanceButton(context);
+        final Button addServerButton = createAddServerButton(context);
         final Button copyButton = createCopyButton(context);
         final Button openSettingsButton = createOpenSettingsButton(context);
         final Button exitButton = createExitButton(context);
 
         context.getRootNode().getChildren().clear();
-        context.getRootNode().getChildren().addAll(loadLastInstanceButton, table, newInstanceButton, copyButton, openSettingsButton, exitButton);
+        context.getRootNode().getChildren().addAll(loadLastInstanceButton, table, newInstanceButton, addServerButton, copyButton, openSettingsButton, exitButton);
     }
 
 	private static Button createOpenSettingsButton(Context context) {

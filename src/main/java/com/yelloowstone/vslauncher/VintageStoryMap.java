@@ -2,7 +2,6 @@ package com.yelloowstone.vslauncher;
 
 import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,8 +38,8 @@ public class VintageStoryMap {
 	}
 
 	private Connection open() throws SQLException {
-		// immutable: never create -wal/-shm files next to (or write to) the game's own data
-		return DriverManager.getConnection("jdbc:sqlite:" + file.toURI() + "?mode=ro&immutable=1");
+		// read-only; live (WAL) aware, and leaves no -wal/-shm files behind when the game is closed
+		return GameDatabase.open(file);
 	}
 
 	/** Streams every tile to {@code consumer}; unreadable tiles are skipped. */
