@@ -55,6 +55,9 @@ The Java package is `com.yelloowstone.vslauncher` (typo'd "yelloowstone"); **nev
 ## Conventions
 - Match the surrounding code: gui pages are static `create(Context[, ...])` methods that clear and refill
   the root node; play `context.getVolumeProperty().play()` in button handlers.
+- One instance must never break the launcher: wrap per-instance reads in GUI code in `Errors.safe(...)` (logs, returns
+  a fallback), allow null `runtimePath`/`dataPath`, and remember that an exception escaping `App.start` exits the app.
+  `Errors.install` catches the rest on the FX thread (dialog, back to the instance list if the page was left empty).
 - New buttons: add an entry for the label in `Icons.BY_TEXT` (icons are Material SVG paths sized from the
   path's own bounds; don't stretch them into a fixed square).
 - Dates: keep `LocalDateTime` values in table columns (so sorting is chronological) and format only in the

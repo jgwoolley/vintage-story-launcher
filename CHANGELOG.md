@@ -2,7 +2,17 @@
 
 All notable changes since 1.0.0. Versions follow `pom.xml`.
 
-## Unreleased
+## 1.2.1
+
+### Fixes
+- Fixed: the launcher crashed on start (an empty window) when an instance's data folder had no `clientsettings.json`, for
+  example a server's folder added as a normal instance. Such an instance now shows no player, and one whose folder has a
+  `serverconfig.json` is treated as a server instance.
+- One broken instance no longer takes the launcher down: an unreadable entry in `config.json` is skipped (the file is
+  kept as `config.json.bak`) instead of losing every instance, values that fail to load show blank, missing paths no
+  longer break the info page, and any other error is shown in a dialog while the launcher keeps running.
+
+## 1.2.0
 
 ### Servers
 - **Server instances.** **Add Server** adds a dedicated server's data folder by itself: its name, port and world are

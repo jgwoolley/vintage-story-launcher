@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import com.yelloowstone.vslauncher.gui.Errors;
 import com.yelloowstone.vslauncher.gui.InstanceSelectionPage;
 
 public class App extends Application {
@@ -23,14 +24,27 @@ public class App extends Application {
 		scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
 		root.setAlignment(Pos.CENTER);
 		final var context = new Context(stage, root);
-		InstanceSelectionPage.create(context);
+		Errors.install(context);
+		try {
+			InstanceSelectionPage.create(context);
+		} catch (RuntimeException e) {
+			// An exception escaping start() ends the app: show what failed in the window instead
+			e.printStackTrace();
+			root.getChildren().setAll(new javafx.scene.control.Label("Could not show the instance list: " + e));
+		}
 		installScrollSpeed(scene, context);
 
 		stage.setTitle("Nf3t’s VintageStory Launcher");
 
 		stage.getIcons().add(new Image(getClass().getResourceAsStream("/icon-64.png")));
 		stage.setScene(scene);
-		stage.show();
+		try {
+			stage.show(); // the first layout fills the table cells, still inside start()
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			root.getChildren().setAll(new javafx.scene.control.Label("Could not show the instance list: " + e));
+			stage.show();
+		}
 
 		tray = TrayMenu.install(context, stage);
 		if (tray != null) {

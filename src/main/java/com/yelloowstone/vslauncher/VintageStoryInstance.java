@@ -70,7 +70,10 @@ public class VintageStoryInstance {
         this.launchArgs = launchArgs;
         this.wrapper = wrapper;
         this.environment = environment;
-        this.server = server != null && server;
+        // An instance saved before server support whose folder is a server's (serverconfig.json, no clientsettings.json)
+        // is a server: opened as a client it has no player and no game settings.
+        this.server = server != null ? server
+                : dataPath != null && !new File(dataPath, "clientsettings.json").isFile() && ServerConfig.isServerDataPath(dataPath);
         this.serverMapPath = serverMapPath;
     }
 
@@ -443,7 +446,18 @@ public class VintageStoryInstance {
         if (this.server) {
             return null;
         }
-        return getClientSettingsFile(objectMapper).getStringSettings().get("playername");
+        // No clientsettings.json yet (never run, or not a client folder) must not break the instance list
+        final File settings = new File(dataPath, "clientsettings.json");
+        if (!settings.isFile()) {
+            return null;
+        }
+        try {
+            final ClientSettingsFile file = getClientSettingsFile(objectMapper);
+            return file.getStringSettings() == null ? null : file.getStringSettings().get("playername");
+        } catch (RuntimeException e) {
+            System.err.println("Could not read " + settings + ": " + e.getMessage());
+            return null;
+        }
     }
     
     @JsonIgnore

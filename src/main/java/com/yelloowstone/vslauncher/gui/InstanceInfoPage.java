@@ -148,7 +148,7 @@ public class InstanceInfoPage {
 		final List<String> clients = save == null ? List.of() : ServerMapPage.clientMaps(context, save.id()).stream()
 				.map(ServerMapPage.ClientMap::toString).toList();
 		final List<Row> rows = new ArrayList<>();
-		rows.add(new Row("Server Data Path", dataPath.toString(), text -> {
+		rows.add(new Row("Server Data Path", String.valueOf(dataPath), text -> {
 			final File file = new File(text.trim());
 			if (!ServerConfig.isServerDataPath(file)) {
 				warn("The server data path must be a folder with serverconfig.json: " + text);
@@ -177,12 +177,12 @@ public class InstanceInfoPage {
 			}
 		}));
 		if (instance.isServer()) {
-			rows.addAll(createServerRows(context, instance));
+			rows.addAll(Errors.safe(() -> createServerRows(context, instance), List.of()));
 		} else {
-			rows.add(new Row("Runtime Path", instance.getRuntimePath().toString(),
+			rows.add(new Row("Runtime Path", String.valueOf(instance.getRuntimePath()),
 					directorySetter("The runtime path", instance::setRuntimePath),
 					List.of(new Action("Open", "Open Folder", () -> Context.openFile(instance.getRuntimePath())))));
-			rows.add(new Row("Data Path", instance.getDataPath().toString(),
+			rows.add(new Row("Data Path", String.valueOf(instance.getDataPath()),
 					directorySetter("The data path", instance::setDataPath),
 					List.of(new Action("Open", "Open Folder", () -> Context.openFile(instance.getDataPath())))));
 			rows.add(new Row("Launch Arguments", instance.getLaunchArgs() == null ? "" : instance.getLaunchArgs(),
@@ -193,8 +193,8 @@ public class InstanceInfoPage {
 					text -> instance.setEnvironment(blankToNull(text))));
 			rows.add(new Row("Mod Paths", describeModPaths(context, instance), null, List.of(
 					new Action("Edit", () -> InstanceModPathsPage.create(context, instance)))));
-			rows.add(new Row("Player Name", instance.getPlayer(context.getObjectMapper()), null));
-			rows.add(new Row("Version", instance.getVersion(), null));
+			rows.add(new Row("Player Name", Errors.safe(() -> instance.getPlayer(context.getObjectMapper()), null), null));
+			rows.add(new Row("Version", Errors.safe(instance::getVersion, null), null));
 			rows.add(new Row("Last Open", HumanTime.describe(instance.getLastOpen()), null));
 		}
 

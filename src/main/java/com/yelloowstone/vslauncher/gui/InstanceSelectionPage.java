@@ -30,7 +30,7 @@ public class InstanceSelectionPage {
     public static TableColumn<VintageStoryInstance, String> createVersionColumn() {
         final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Version");
         versionCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().isServer() ? "Server" : data.getValue().getVersion()));
+                new SimpleStringProperty(data.getValue().isServer() ? "Server" : Errors.safe(data.getValue()::getVersion, "?")));
 
         return versionCol;
     }
@@ -38,14 +38,14 @@ public class InstanceSelectionPage {
     public static TableColumn<VintageStoryInstance, String> createDataPathColumn() {
         final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Instance Path");
         versionCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getDataPath().toString()));
+                new SimpleStringProperty(String.valueOf(data.getValue().getDataPath())));
 
         return versionCol;
     }
 
     public static TableColumn<VintageStoryInstance, LocalDateTime> createLastOpenColumn() {
         final TableColumn<VintageStoryInstance, LocalDateTime> versionCol = new TableColumn<>("Last Open");
-        versionCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getLastOpen()));
+        versionCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(Errors.safe(data.getValue()::getLastOpen, null)));
         versionCol.setCellFactory(HumanTime.cellFactory());
 
         return versionCol;
@@ -54,7 +54,7 @@ public class InstanceSelectionPage {
     public static TableColumn<VintageStoryInstance, String> createRuntimePathColumn() {
         final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Runtime Path");
         versionCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getRuntimePath().toString()));
+                new SimpleStringProperty(String.valueOf(data.getValue().getRuntimePath())));
 
         return versionCol;
     }
@@ -62,7 +62,7 @@ public class InstanceSelectionPage {
     public static TableColumn<VintageStoryInstance, String> createLastLoginUserColumn(Context context) {
         final TableColumn<VintageStoryInstance, String> versionCol = new TableColumn<>("Player");
         versionCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getPlayer(context.getObjectMapper())));
+                new SimpleStringProperty(Errors.safe(() -> data.getValue().getPlayer(context.getObjectMapper()), null)));
 
         return versionCol;
     }
