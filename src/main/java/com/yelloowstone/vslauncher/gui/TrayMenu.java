@@ -93,7 +93,7 @@ public class TrayMenu {
     /** Rebuilds the menu from the five most recently opened instances. */
     public void rebuild() {
         // Read on the JavaFX thread (the list belongs to it), then update the AWT menu
-        final List<VintageStoryInstance> recent = new ArrayList<>(context.getInstances());
+        final List<VintageStoryInstance> recent = new ArrayList<>(context.getClientInstances());
         recent.sort(Comparator.comparing(VintageStoryInstance::getLastOpen).reversed());
         final List<VintageStoryInstance> top = recent.subList(0, Math.min(RECENT, recent.size()));
         final List<String> labels = new ArrayList<>();

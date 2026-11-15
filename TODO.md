@@ -1,0 +1,11 @@
+
+- Lock down main branch
+- Add schematic search into this project. See implementation in Wiki / C# Script / VintageStory Mod.
+- Port Map Rendering into Wiki Extension, make it an overlay for waypoints. Make waypoints work with new ~/.config/VintagestoryData/ModData/Nf3tData.json.
+- Server name -> savegame guid: no mod needed (the client API doesn't expose the server name). The launcher derives it in `MapRegistry.recordSession`. It is only found when ALL of these hold:
+  - The game was started from this launcher, and the game has exited (recorded on exit, not while running).
+  - The player connected to the server at least once in that session. Servers never joined have no mapping.
+  - Exactly one non-single-player `Maps/<guid>.db` was created or modified during the session.
+  - Exactly one server appears in that session's `Logs/client-main.log` (it only holds the latest session). The name is the `host-port` from the log (`ModsByServer/<host-port>`), not the label from `clientsettings.bkp`.
+  - Not found (logs "Could not tell which server...") if the session joined several servers, changed several maps, or the game was started outside the launcher.
+  - Open: map `host-port` from the log to the `clientsettings.bkp` entry name so the UI can show the user's label.

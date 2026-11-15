@@ -1,6 +1,8 @@
 package com.yelloowstone.vslauncher.gui;
 
 import com.yelloowstone.vslauncher.MapRegistry;
+import com.yelloowstone.vslauncher.SaveGameScanner;
+import com.yelloowstone.vslauncher.ServerConfig;
 import com.yelloowstone.vslauncher.Settings;
 import com.yelloowstone.vslauncher.VintageStoryInstance;
 import javafx.collections.FXCollections;
@@ -16,8 +18,10 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Context {
@@ -95,10 +99,46 @@ public class Context {
         return instances;
     }
 
+    /** The game client instances (not servers): the ones that can be launched and have maps. */
+    public List<VintageStoryInstance> getClientInstances() {
+        return instances.stream().filter(instance -> !instance.isServer()).toList();
+    }
+
+    /**
+     * Savegame identifier (lower case) -> name of the server instance running that world, read from each server's
+     * saves. A client map with that identifier is that server's world. Reads the saves, so call it once per page.
+     */
+    public Map<String, String> getServerWorlds() {
+        final Map<String, String> result = new HashMap<>();
+        for (final VintageStoryInstance instance : instances) {
+            if (!instance.isServer()) {
+                continue;
+            }
+            for (final File save : ServerConfig.read(mapper, instance.getDataPath()).saves(instance.getDataPath())) {
+                final SaveGameScanner.SaveInfo info = SaveGameScanner.read(save);
+                if (info != null) {
+                    result.putIfAbsent(info.id().toLowerCase(), instance.getName());
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Call after editing an instance in place: saves config.json and notifies list listeners (the tray menu).
+     * Replacing the element with itself fires a change, which is what the save listener reacts to.
+     */
+    public void instanceChanged(final VintageStoryInstance instance) {
+        final int index = instances.indexOf(instance);
+        if (index >= 0) {
+            instances.set(index, instance);
+        }
+    }
+
     public ObservableList<File> getRuntimeDirs() {
         final Set<File> runtimeDirs = new HashSet<>();
 
-        for(final var instance: this.getInstances()) {
+        for(final var instance: this.getClientInstances()) {
             runtimeDirs.add(instance.getRuntimePath());
         }
 
@@ -138,7 +178,7 @@ public class Context {
     public ObservableList<File> getDataDirs() {
         final Set<File> dataDirs = new HashSet<>();
 
-        for(final var instance: this.getInstances()) {
+        for(final var instance: this.getClientInstances()) {
             dataDirs.add(instance.getDataPath());
         }
 
@@ -171,8 +211,8 @@ public class Context {
     public ObservableList<File> getModDirs() {
         final Set<File> modDirs = new HashSet<>();
 
-        for(final var instance: this.getInstances()) {
-            modDirs.add(instance.getModsPath());
+        for(final var instance: this.getClientInstances()) {
+            modDirs.addAll(instance.getManagedModPaths());
         }
 
         for(final File dataDir: this.getDataDirs()) {

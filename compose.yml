@@ -1,0 +1,41 @@
+# vintage-story-launcher: publishes the already-built site at http://vintage-story-launcher.localhost with nginx. Nothing is built here.
+#
+#   (no build step: index.html and icons/ are published as is)
+#   docker compose up -d       # docker compose down to stop
+#
+# Joins the shared devbox Traefik (devbox_network); no host ports. The mounts are read-only and must exist already:
+# if one is missing, "up" fails instead of creating an empty root-owned directory.
+# HOST_WORKSPACE is the workspace path on the Docker host, set in devbox terminals: the host's daemon resolves bind
+# mounts, not the container. Run from a terminal on the host itself, the fallback (..) is the same directory.
+
+services:
+  web:
+    image: nginx:alpine
+    container_name: vintage-story-launcher-web
+    read_only: true
+    tmpfs: [/tmp, /run, /var/cache/nginx]
+    volumes:
+      - type: bind
+        source: ${HOST_WORKSPACE:-..}/vintage-story-launcher/index.html
+        target: /usr/share/nginx/html/index.html
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${HOST_WORKSPACE:-..}/vintage-story-launcher/icons
+        target: /usr/share/nginx/html/icons
+        read_only: true
+        bind:
+          create_host_path: false
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${NETWORK_NAME:-devbox_network}
+      - traefik.http.routers.vintage-story-launcher-web.rule=Host(`${VINTAGE_STORY_LAUNCHER_HOST:-vintage-story-launcher.localhost}`)
+      - traefik.http.routers.vintage-story-launcher-web.entrypoints=web
+      - traefik.http.services.vintage-story-launcher-web.loadbalancer.server.port=80
+
+networks:
+  proxy:
+    external: true
+    name: ${NETWORK_NAME:-devbox_network}

@@ -23,54 +23,161 @@ import javafx.collections.ObservableList;
 import tools.jackson.databind.ObjectMapper;
 
 public class VintageStoryInstance {
-    private final String name;
-    private final File runtimePath;
-    private final File dataPath;
-    /** Null for instances saved before the mod path was configurable; see {@link #getModsPath()}. */
-    private final File modPath;
+    private String name;
+    private File runtimePath;
+    private File dataPath;
+    /**
+     * Mod folders managed by the launcher and passed to the game with {@code --addModPath}. The first one is where
+     * the Mods page installs and updates mods. Empty means just the default {@code <dataPath>/Mods}.
+     */
+    private List<File> modPaths;
+    /** Extra command line arguments for the game, as typed (quotes group words). Null or empty for none. */
+    private String launchArgs;
+    /** A command put in front of the game, for example {@code gamemoderun}. Not used on macOS. */
+    private String wrapper;
+    /** Environment variables for the game as {@code KEY=value} words. Not used on macOS. */
+    private String environment;
+    /**
+     * A dedicated server's data folder rather than a game client: only {@link #name} and {@link #dataPath} are used,
+     * everything else comes from its {@code serverconfig.json} and save ({@link ServerConfig}). It is never launched.
+     */
+    private final boolean server;
+    /** For a server: the client map (a {@code Maps/<savegame id>.db} of a client instance) last shown with it. */
+    private File serverMapPath;
 
     @JsonCreator
     public VintageStoryInstance(
             @JsonProperty("name") final String name,
             @JsonProperty("runtimePath") final File runtimePath,
             @JsonProperty("dataPath") final File dataPath,
-            @JsonProperty("modPath") final File modPath) {
+            // Older config.json files stored a single "modPath" (null = default); it becomes the first entry of modPaths.
+            @JsonProperty("modPath") final File legacyModPath,
+            @JsonProperty("modPaths") final List<File> modPaths,
+            @JsonProperty("launchArgs") final String launchArgs,
+            @JsonProperty("wrapper") final String wrapper,
+            @JsonProperty("environment") final String environment,
+            @JsonProperty("server") final Boolean server,
+            @JsonProperty("serverMapPath") final File serverMapPath) {
         this.name = name;
         this.runtimePath = runtimePath;
         this.dataPath = dataPath;
-        this.modPath = modPath;
+        this.modPaths = new ArrayList<>();
+        if (modPaths != null) {
+            this.modPaths.addAll(modPaths);
+        } else if (legacyModPath != null) {
+            this.modPaths.add(legacyModPath);
+        }
+        this.launchArgs = launchArgs;
+        this.wrapper = wrapper;
+        this.environment = environment;
+        this.server = server != null && server;
+        this.serverMapPath = serverMapPath;
+    }
+
+    public VintageStoryInstance(final String name, final File runtimePath, final File dataPath, final File modPath) {
+        this(name, runtimePath, dataPath, modPath, null, null, null, null, false, null);
+    }
+
+    /** A server instance: a dedicated server's data folder, shown with a client's map of its world. */
+    public static VintageStoryInstance server(final String name, final File dataPath) {
+        return new VintageStoryInstance(name, null, dataPath, null, null, null, null, null, true, null);
+    }
+
+    public boolean isServer() {
+        return this.server;
+    }
+
+    public File getServerMapPath() {
+        return this.serverMapPath;
+    }
+
+    public void setServerMapPath(final File serverMapPath) {
+        this.serverMapPath = serverMapPath;
     }
 
     public VintageStoryInstance(final String name, final File runtimePath, final File dataPath) {
         this(name, runtimePath, dataPath, null);
     }
 
-    @JsonProperty("modPath")
-    public File getModPath() {
-        return this.modPath;
-    }
-
     public String getName() {
         return this.name;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
     }
 
     public File getDataPath() {
         return this.dataPath;
     }
 
+    public void setDataPath(final File dataPath) {
+        this.dataPath = dataPath;
+    }
+
     public File getRuntimePath() {
         return runtimePath;
     }
-    
+
+    public void setRuntimePath(final File runtimePath) {
+        this.runtimePath = runtimePath;
+    }
+
+    public List<File> getModPaths() {
+        return new ArrayList<>(this.modPaths);
+    }
+
+    public void setModPaths(final List<File> modPaths) {
+        this.modPaths = new ArrayList<>(modPaths);
+    }
+
+    public String getLaunchArgs() {
+        return this.launchArgs;
+    }
+
+    public void setLaunchArgs(final String launchArgs) {
+        this.launchArgs = launchArgs;
+    }
+
+    public String getWrapper() {
+        return this.wrapper;
+    }
+
+    public void setWrapper(final String wrapper) {
+        this.wrapper = wrapper;
+    }
+
+    public String getEnvironment() {
+        return this.environment;
+    }
+
+    public void setEnvironment(final String environment) {
+        this.environment = environment;
+    }
+
     @JsonIgnore
     public LocalDateTime getLastOpen() {
-        final File src = new File(dataPath, "clientsettings.json");
-        final Instant instant = Instant.ofEpochMilli(src.lastModified());
+        final Instant instant = Instant.ofEpochMilli(this.server ? getLastSaved() : new File(dataPath, "clientsettings.json").lastModified());
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
     
+    /** A server's "last open": when any of its saves (or the live write-ahead log next to one) last changed. */
+    private long getLastSaved() {
+        long newest = new File(dataPath, ServerConfig.FILE_NAME).lastModified();
+        final File[] files = new File(dataPath, "Saves").listFiles((dir, name) -> name.endsWith(".vcdbs") || name.endsWith(".vcdbs-wal"));
+        if (files != null) {
+            for (final File file : files) {
+                newest = Math.max(newest, file.lastModified());
+            }
+        }
+        return newest;
+    }
+
     @JsonIgnore
     public String getVersion() {
+        if (this.runtimePath == null) {
+            return null;
+        }
         final File assetsPath = new File(this.runtimePath,"assets");
         if(!assetsPath.isDirectory()) {
             return null;
@@ -113,6 +220,9 @@ public class VintageStoryInstance {
     }
 
     public void open(final ObjectMapper objectMapper, final MapRegistry maps) {
+        if (this.server) {
+            return; // a server instance is only looked at, never started
+        }
         final List<String> modPathArgs = getModPathArgs(objectMapper);
         // The launch methods wait for the game to exit, so run them off the UI thread or the
         // launcher window stops responding for as long as the game is open.
@@ -135,8 +245,20 @@ public class VintageStoryInstance {
     }
 
     @JsonIgnore
+    public File getDefaultModsPath() {
+        return new File(this.dataPath, "Mods");
+    }
+
+    /** The mod folder the Mods page works on: the first launcher mod path, or the default Mods folder. */
+    @JsonIgnore
     public File getModsPath() {
-        return this.modPath != null ? this.modPath : new File(this.dataPath, "Mods");
+        return this.modPaths.isEmpty() ? getDefaultModsPath() : this.modPaths.get(0);
+    }
+
+    /** Every mod folder the launcher makes sure the game loads. */
+    @JsonIgnore
+    public List<File> getManagedModPaths() {
+        return this.modPaths.isEmpty() ? List.of(getDefaultModsPath()) : getModPaths();
     }
 
     /**
@@ -160,22 +282,38 @@ public class VintageStoryInstance {
     }
 
     /**
-     * Arguments that make the game load this instance's Mods folder when clientsettings.json
-     * does not already list it.
+     * Arguments that make the game load this instance's mod folders (see {@link #getManagedModPaths()}) that
+     * clientsettings.json does not already list. Appended to the game's own list, never replacing it.
+     * The game crashes when {@code --addModPath} is repeated, so it is given once followed by every folder.
      */
     @JsonIgnore
     public List<String> getModPathArgs(final ObjectMapper objectMapper) {
-        final File modsPath = getModsPath();
-        for (final String modPath : getConfiguredModPaths(objectMapper)) {
-            final File file = new File(modPath);
-            if (file.isAbsolute() && isSameFile(file, modsPath)) {
-                return Collections.emptyList();
+        final List<String> configured = getConfiguredModPaths(objectMapper);
+        final List<File> toAdd = new ArrayList<>();
+        for (final File modsPath : getManagedModPaths()) {
+            boolean skip = false;
+            for (final String modPath : configured) {
+                final File file = new File(modPath);
+                if (file.isAbsolute() && isSameFile(file, modsPath)) {
+                    skip = true;
+                }
+            }
+            for (final File added : toAdd) {
+                if (isSameFile(added, modsPath)) {
+                    skip = true;
+                }
+            }
+            if (!skip) {
+                toAdd.add(modsPath);
             }
         }
-
         final List<String> result = new ArrayList<>();
-        result.add("--addModPath");
-        result.add(modsPath.toString());
+        if (!toAdd.isEmpty()) {
+            result.add("--addModPath");
+            for (final File file : toAdd) {
+                result.add(file.toString());
+            }
+        }
         return result;
     }
 
@@ -187,55 +325,75 @@ public class VintageStoryInstance {
         }
     }
 
-    public void openWindows(final List<String> extraArgs) {
-    	// Fonts might not work see bash script...
-        final List<String> args = new ArrayList<>(List.of(
-                new File(this.getRuntimePath(), "Vintagestory").toString(),
-                "--dataPath",
-                this.getDataPath().toString()));
-        args.addAll(extraArgs);
-        final ProcessBuilder builder = new ProcessBuilder(args);
-        builder.inheritIO(); // an unread output pipe fills up and eventually stalls the game
-        try {
-            final Process process = builder.start();
-            final int exitCode = process.waitFor();
-            System.out.println("Process Exit Code: " +  exitCode);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    /** Splits a typed command line into words; single or double quotes group words. */
+    public static List<String> splitWords(final String text) {
+        final List<String> words = new ArrayList<>();
+        if (text == null) {
+            return words;
         }
+        final StringBuilder current = new StringBuilder();
+        char quote = 0;
+        boolean started = false;
+        for (final char c : text.toCharArray()) {
+            if (quote != 0) {
+                if (c == quote) {
+                    quote = 0;
+                } else {
+                    current.append(c);
+                }
+            } else if (c == '"' || c == '\'') {
+                quote = c;
+                started = true;
+            } else if (Character.isWhitespace(c)) {
+                if (started) {
+                    words.add(current.toString());
+                    current.setLength(0);
+                    started = false;
+                }
+            } else {
+                current.append(c);
+                started = true;
+            }
+        }
+        if (started) {
+            words.add(current.toString());
+        }
+        return words;
     }
-    
+
+    public void openWindows(final List<String> extraArgs) {
+        // Fonts might not work see bash script...
+        run(List.of(new File(this.getRuntimePath(), "Vintagestory").toString()), extraArgs, true);
+    }
+
     public void openLinux(final List<String> extraArgs) {
-        final List<String> args = new ArrayList<>(List.of(
-                new File(this.getRuntimePath(), "run.sh").toString(),
-                "--dataPath",
-                this.getDataPath().toString()));
-        args.addAll(extraArgs);
-        final ProcessBuilder builder = new ProcessBuilder(args);
-        builder.inheritIO(); // an unread output pipe fills up and eventually stalls the game
-        try {
-            final Process process = builder.start();
-            final int exitCode = process.waitFor();
-            System.out.println("Process Exit Code: " +  exitCode);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        run(List.of(new File(this.getRuntimePath(), "run.sh").toString()), extraArgs, true);
     }
 
     public void openMac(final List<String> extraArgs) {
-        final List<String> args = new ArrayList<>(List.of(
-                "open",
-                "-n",
-                this.getRuntimePath().toString(),
-                "--args",
-                "--dataPath",
-                this.getDataPath().toString()));
+        // "open" starts the app through LaunchServices, so a wrapper command or environment would not reach the game.
+        run(List.of("open", "-n", this.getRuntimePath().toString(), "--args"), extraArgs, false);
+    }
+
+    private void run(final List<String> program, final List<String> extraArgs, final boolean wrapAndEnvironment) {
+        final List<String> args = new ArrayList<>();
+        if (wrapAndEnvironment) {
+            args.addAll(splitWords(this.wrapper));
+        }
+        args.addAll(program);
+        args.add("--dataPath");
+        args.add(this.getDataPath().toString());
         args.addAll(extraArgs);
+        args.addAll(splitWords(this.launchArgs));
         final ProcessBuilder builder = new ProcessBuilder(args);
+        if (wrapAndEnvironment) {
+            for (final String word : splitWords(this.environment)) {
+                final int eq = word.indexOf('=');
+                if (eq > 0) {
+                    builder.environment().put(word.substring(0, eq), word.substring(eq + 1));
+                }
+            }
+        }
         builder.inheritIO(); // an unread output pipe fills up and eventually stalls the game
         try {
             final Process process = builder.start();
@@ -282,6 +440,9 @@ public class VintageStoryInstance {
 
     @JsonIgnore
     public String getPlayer(ObjectMapper objectMapper) {
+        if (this.server) {
+            return null;
+        }
         return getClientSettingsFile(objectMapper).getStringSettings().get("playername");
     }
     
@@ -297,6 +458,9 @@ public class VintageStoryInstance {
 			}
         });
         
+        if (files == null) {
+            return result; // no Maps folder (a server, or a client that never opened a world)
+        }
         for(final File file: files) {
 			result.add(new VintageStoryMap(file));
         }

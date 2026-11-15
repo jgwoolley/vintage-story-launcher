@@ -64,7 +64,7 @@ public class MapCopyPage {
 		final Label mapNamelabel = new Label("Map File: " + map.getFile().getName());
 		
 		final ObservableList<InstanceMap> maps = FXCollections.observableArrayList();
-		for(final VintageStoryInstance otherInstnace: context.getInstances()) {
+		for(final VintageStoryInstance otherInstnace: context.getClientInstances()) {
 			if(otherInstnace == instance) {
 				continue;
 			}
@@ -75,6 +75,16 @@ public class MapCopyPage {
 			}
 		}
 		
+		final Label explanation = new Label("A map file is named after the world it belongs to (its unique ID). "
+				+ "Two files with the same name are two copies of the same world, for example the same server played from "
+				+ "two instances, so they can be merged into one map. Maps with different names are different worlds "
+				+ "and are never offered here.");
+		explanation.setWrapText(true);
+		final Label emptyLabel = new Label(maps.isEmpty()
+				? "No other instance has a copy of this world, so there is nothing to merge it with."
+				: "Pick the instance whose copy of this map you want to merge in.");
+		emptyLabel.setWrapText(true);
+
 		final ComboBox<InstanceMap> comboBox = new ComboBox<>(maps);
 		comboBox.setConverter(new StringConverter<InstanceMap>() {
 		    @Override
@@ -91,6 +101,8 @@ public class MapCopyPage {
 		context.getRootNode().getChildren().addAll(
 				instanceLabel,
 				mapNamelabel,
+				explanation,
+				emptyLabel,
 				comboBox,
 				createMergeButton(context, instance),
 				createBackButton(context, instance));

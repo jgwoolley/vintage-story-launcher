@@ -26,6 +26,12 @@ public class Icons {
     private static final String MAP = "M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z";
     private static final String MERGE = "M17 20.41L18.41 19 15 15.59 13.59 17 17 20.41zM7.5 8H11v5.59L5.59 19 7 20.41l6-6V8h3.5L12 3.5 7.5 8z";
 
+    private static final String PREVIOUS = "M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z";
+    private static final String NEXT = "M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z";
+    private static final String FILTER = "M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z";
+    private static final String EDIT = "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z";
+    private static final String REMOVE = "M19 13H5v-2h14v2z";
+
     private static final Map<String, String> BY_TEXT = Map.ofEntries(
             Map.entry("Open", PLAY),
             Map.entry("Open Runtime Path", FOLDER),
@@ -33,11 +39,19 @@ public class Icons {
             Map.entry("Open Mod Path", FOLDER),
             Map.entry("Open Config", FOLDER),
             Map.entry("Open Maps", MAP),
+            Map.entry("Open Folder", FOLDER),
+            Map.entry("Edit", EDIT),
+            Map.entry("Edit Mod Paths", EDIT),
+            Map.entry("Remove", REMOVE),
+            Map.entry("Move to Top", UPGRADE),
+            Map.entry("Done", CHECK),
             Map.entry("Manage Mods", EXTENSION),
             Map.entry("Back", BACK),
             Map.entry("Add", ADD),
             Map.entry("Create New Instance", ADD),
+            Map.entry("Add Server", ADD),
             Map.entry("Check for Updates", REFRESH),
+            Map.entry("Refresh", REFRESH),
             Map.entry("Export Manifest", DOWNLOAD),
             Map.entry("Update", UPGRADE),
             Map.entry("Update All", UPGRADE),
@@ -50,13 +64,26 @@ public class Icons {
             Map.entry("Copy Instance Data", COPY),
             Map.entry("Copy Mods", COPY),
             Map.entry("Merge Maps", MERGE),
+            Map.entry("Merge Nf3t Data", MERGE),
             Map.entry("Merge", MERGE),
-            Map.entry("More", MORE));
+            Map.entry("More", MORE),
+            Map.entry("Previous", PREVIOUS),
+            Map.entry("Next", NEXT),
+            Map.entry("Same Structure", FILTER),
+            Map.entry("Same Schematic", FILTER),
+            Map.entry("Copy /tp", COPY),
+            Map.entry("Show Pair", FILTER),
+            Map.entry("Show All", CLOSE));
 
     /** A button showing {@code text}, with the icon registered for that text if there is one. */
     public static Button button(final String text) {
+        return button(text, text);
+    }
+
+    /** A button showing {@code text} with the icon registered for {@code iconText} (e.g. "Open" showing a folder). */
+    public static Button button(final String text, final String iconText) {
         final Button button = new Button(text);
-        final String path = text.startsWith("Load Last Instance") ? PLAY : BY_TEXT.get(text);
+        final String path = iconText.startsWith("Load Last Instance") ? PLAY : BY_TEXT.get(iconText);
         if (path != null) {
             // -fx-shape stretches the path's bounding box to the region, so size the region to the
             // path's own proportions (scaled from the 24x24 design grid) or narrow icons get distorted.

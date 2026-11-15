@@ -29,7 +29,10 @@ public class FileButtonLabel {
             if(selectedFile == null || !selectedFile.isDirectory()) {
                 return;
             }
-            dirs.add(selectedFile);
+            if(!dirs.contains(selectedFile)) {
+                dirs.add(selectedFile);
+            }
+            fileProperty.set(selectedFile); // the folder just picked is the one meant
         });
 
         final Label keyLabel = new Label(labelText);

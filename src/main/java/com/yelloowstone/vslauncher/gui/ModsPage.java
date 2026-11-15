@@ -55,6 +55,8 @@ public class ModsPage {
 		final StringProperty available = new SimpleStringProperty("checking...");
 		final StringProperty status = new SimpleStringProperty("");
 		final BooleanProperty updatable = new SimpleBooleanProperty(false);
+		/** Set when the same mod id exists in several folders; the game loads only one of them. */
+		final StringProperty notice = new SimpleStringProperty("");
 
 		ModRow(final LocalMod mod, final String origin) {
 			this.mod = mod;
@@ -76,7 +78,11 @@ public class ModsPage {
 	}
 
 	/** A mod and the kind of folder it was found in. */
-	private record Scanned(String origin, LocalMod mod) {
+	private record Scanned(String origin, LocalMod mod, File dir) {
+	}
+
+	/** {@code shown} fills the table; {@code all} also holds mods of other folders the game loads, to spot duplicates. */
+	private record Scan(List<Scanned> shown, List<Scanned> all) {
 	}
 
 	/** A folder of mods: the instance's own, or one that a server made the game download. */
@@ -92,6 +98,7 @@ public class ModsPage {
 	private final ModUpdater updater = new ModUpdater();
 	private final ObservableList<ModRow> rows = FXCollections.observableArrayList();
 	private final Label summary = new Label();
+	private final Label duplicateNotice = new Label();
 	private final Button refreshButton = Icons.button("Check for Updates");
 	private final Button updateAllButton = Icons.button("Update All");
 	private List<LocalMod> localMods = List.of();
@@ -120,6 +127,7 @@ public class ModsPage {
 		table.getColumns().add(createTextColumn("Installed", row -> new SimpleStringProperty(row.mod.getVersion())));
 		table.getColumns().add(createTextColumn("Available", row -> row.available));
 		table.getColumns().add(createTextColumn("Status", row -> row.status));
+		table.getColumns().add(createNoticeColumn());
 		table.getColumns().add(createActionColumn());
 		VBox.setVgrow(table, Priority.ALWAYS);
 
@@ -168,7 +176,11 @@ public class ModsPage {
 		}
 
 		context.getRootNode().getChildren().clear();
-		context.getRootNode().getChildren().addAll(sourceBar, summary, table, buttons);
+		duplicateNotice.setWrapText(true);
+		duplicateNotice.setStyle("-fx-text-fill: #ffb347; -fx-font-weight: bold;");
+		duplicateNotice.setVisible(false);
+		duplicateNotice.setManaged(false);
+		context.getRootNode().getChildren().addAll(sourceBar, summary, duplicateNotice, table, buttons);
 	}
 
 	/** The instance's own mods first, then each ModsByServer/<host-port> folder. */
@@ -268,6 +280,27 @@ public class ModsPage {
 		return column;
 	}
 
+	/** Warns about mods that exist in several folders. */
+	private TableColumn<ModRow, String> createNoticeColumn() {
+		final TableColumn<ModRow, String> column = createTextColumn("Notice", row -> row.notice);
+		column.setSortable(false);
+		column.setMinWidth(160);
+		column.setCellFactory(c -> new TableCell<>() {
+			{
+				setWrapText(true);
+				setStyle("-fx-text-fill: #ffb347;");
+			}
+
+			@Override
+			protected void updateItem(final String text, final boolean empty) {
+				super.updateItem(text, empty);
+				setText(empty || text == null || text.isEmpty() ? null : "\u26A0 " + text);
+				setTooltip(empty || text == null || text.isEmpty() ? null : new Tooltip(text));
+			}
+		});
+		return column;
+	}
+
 	private TableColumn<ModRow, ModRow> createActionColumn() {
 		final TableColumn<ModRow, ModRow> column = new TableColumn<>("");
 		column.setSortable(false);
@@ -334,7 +367,8 @@ public class ModsPage {
 		final Source source = source();
 		summary.setText("Scanning " + source.dir() + "...");
 		rows.clear();
-		async(() -> scanSource(source), scanned -> {
+		async(() -> scanSource(source), scan -> {
+			final List<Scanned> scanned = scan.shown();
 			final List<LocalMod> mods = scanned.stream().map(Scanned::mod).toList();
 			localMods = mods;
 			missingDependencies = source.readOnly() ? List.of() : ModUpdater.findMissingDependencies(mods);
@@ -344,6 +378,7 @@ public class ModsPage {
 				byMod.put(item.mod(), row);
 				rows.add(row);
 			}
+			markDuplicates(scan);
 			summary.setText("Checking " + mods.size() + " mod(s) for updates...");
 			async(() -> {
 				updater.checkForUpdates(mods, status -> Platform.runLater(() -> byMod.get(status.mod()).apply(status, source.readOnly())));
@@ -356,20 +391,27 @@ public class ModsPage {
 	 * The mods of a source. Joining a server loads the instance's own mods (and any other mod paths in
 	 * clientsettings.json) alongside the ones the server made the game download, so a server view lists all.
 	 */
-	private List<Scanned> scanSource(final Source source) {
+	private Scan scanSource(final Source source) {
 		final List<Scanned> result = new java.util.ArrayList<>();
 		final Set<File> seen = new java.util.HashSet<>();
 		addMods(result, seen, source.dir(), source.readOnly() ? "Server" : "Instance");
+		final List<Scanned> shown = new java.util.ArrayList<>(result);
 		if (source.readOnly()) {
 			addMods(result, seen, instance.getModsPath(), "Instance");
-			for (final String modPath : instance.getConfiguredModPaths(context.getObjectMapper())) {
-				final File dir = new File(modPath);
-				if (dir.isAbsolute()) {
-					addMods(result, seen, dir, "Mod path");
-				}
+		} else {
+			// Other managed folders are not listed (updates go to the folder above) but take part in the duplicate check.
+			for (final File dir : instance.getManagedModPaths()) {
+				addMods(result, seen, dir, "Launcher mod path");
 			}
 		}
-		return result;
+		for (final String modPath : instance.getConfiguredModPaths(context.getObjectMapper())) {
+			final File dir = new File(modPath);
+			if (dir.isAbsolute()) {
+				addMods(result, seen, dir, "Mod path");
+			}
+		}
+		addMods(result, seen, new File(instance.getRuntimePath(), "Mods"), "Game folder");
+		return source.readOnly() ? new Scan(result, result) : new Scan(shown, result);
 	}
 
 	private void addMods(final List<Scanned> result, final Set<File> seen, final File dir, final String origin) {
@@ -381,8 +423,88 @@ public class ModsPage {
 		}
 		if (dir.isDirectory() && seen.add(key)) {
 			for (final LocalMod mod : updater.scan(dir)) {
-				result.add(new Scanned(origin, mod));
+				result.add(new Scanned(origin, mod, dir));
 			}
+		}
+	}
+
+	/**
+	 * The game warns "Multiple mods share the mod ID" and loads only the highest version, so tell the user which
+	 * copy that is. Copies of the same version: only one of them loads.
+	 */
+	private void markDuplicates(final Scan scan) {
+		final Map<String, List<Scanned>> byId = new java.util.LinkedHashMap<>();
+		for (final Scanned item : scan.all()) {
+			if (item.mod().getModid() != null) {
+				byId.computeIfAbsent(item.mod().getModid().toLowerCase(), k -> new ArrayList<>()).add(item);
+			}
+		}
+		int duplicated = 0;
+		for (final List<Scanned> group : byId.values()) {
+			if (group.size() < 2) {
+				continue;
+			}
+			duplicated++;
+			Scanned highest = group.get(0);
+			for (final Scanned item : group) {
+				if (compareVersions(item.mod().getVersion(), highest.mod().getVersion()) > 0) {
+					highest = item;
+				}
+			}
+			for (final ModRow row : rows) {
+				final boolean inGroup = group.stream().anyMatch(item -> item.mod() == row.mod);
+				if (!inGroup) {
+					continue;
+				}
+				if (compareVersions(row.mod.getVersion(), highest.mod().getVersion()) < 0) {
+					row.notice.set("Not loaded: " + highest.mod().getVersion() + " in " + highest.dir() + " is newer");
+				} else {
+					final StringBuilder others = new StringBuilder();
+					for (final Scanned item : group) {
+						if (item.mod() != row.mod) {
+							others.append(others.length() > 0 ? ", " : "").append(item.mod().getVersion())
+									.append(" in ").append(item.dir());
+						}
+					}
+					row.notice.set("Also found: " + others + ". Only the highest version loads");
+				}
+			}
+		}
+		if (duplicated > 0) {
+			duplicateNotice.setText("\u26A0 " + duplicated + " mod(s) exist in more than one mod folder. The game loads "
+					+ "only the highest version of each mod ID and ignores the other copies (see the Notice column).");
+		}
+		duplicateNotice.setVisible(duplicated > 0);
+		duplicateNotice.setManaged(duplicated > 0);
+	}
+
+	/** Compares dotted versions like 1.10.2 numerically; a pre-release suffix (1.0.0-rc.1) ranks below the release. */
+	static int compareVersions(final String a, final String b) {
+		if (a == null || b == null) {
+			return a == null ? (b == null ? 0 : -1) : 1;
+		}
+		final String[] pa = a.split("-", 2);
+		final String[] pb = b.split("-", 2);
+		final String[] na = pa[0].split("\\.");
+		final String[] nb = pb[0].split("\\.");
+		for (int i = 0; i < Math.max(na.length, nb.length); i++) {
+			final long x = i < na.length ? parseLong(na[i]) : 0;
+			final long y = i < nb.length ? parseLong(nb[i]) : 0;
+			if (x != y) {
+				return Long.compare(x, y);
+			}
+		}
+		if (pa.length != pb.length) {
+			return pa.length == 1 ? 1 : -1;
+		}
+		return pa.length == 1 ? 0 : pa[1].compareToIgnoreCase(pb[1]);
+	}
+
+	private static long parseLong(final String text) {
+		try {
+			return Long.parseLong(text.trim());
+		} catch (NumberFormatException e) {
+			return 0;
 		}
 	}
 

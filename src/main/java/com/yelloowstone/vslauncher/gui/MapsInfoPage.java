@@ -40,12 +40,19 @@ public class MapsInfoPage {
 		return versionCol;
 	}
 
-	/** What the map is: a save of yours, a server, or unknown. */
+	/**
+	 * What the map is: a save of yours, a server instance's world ({@code servers}, from
+	 * {@link Context#getServerWorlds()}), a server you played on, or unknown.
+	 */
 	public static String describeSource(final Context context, final Map<String, SaveInfo> saves,
-			final VintageStoryMap map) {
+			final Map<String, String> servers, final VintageStoryMap map) {
 		final SaveInfo save = saves.get(map.getId().toLowerCase());
 		if (save != null) {
 			return "Singleplayer: " + save.displayName();
+		}
+		final String instance = servers.get(map.getId().toLowerCase());
+		if (instance != null) {
+			return "Server: " + instance;
 		}
 		final String server = context.getMapRegistry().getServer(map.getId());
 		return server != null ? "Server: " + server : "Unknown";
@@ -53,7 +60,7 @@ public class MapsInfoPage {
 
 	/** The name you gave the map, else the save's name, else the server, else the file. */
 	public static String displayName(final Context context, final Map<String, SaveInfo> saves,
-			final VintageStoryMap map) {
+			final Map<String, String> servers, final VintageStoryMap map) {
 		final String name = context.getMapRegistry().getName(map.getId());
 		if (name != null) {
 			return name;
@@ -62,21 +69,21 @@ public class MapsInfoPage {
 		if (save != null) {
 			return save.displayName();
 		}
-		final String server = context.getMapRegistry().getServer(map.getId());
+		final String server = servers.getOrDefault(map.getId().toLowerCase(), context.getMapRegistry().getServer(map.getId()));
 		return server != null ? server : "(unnamed)";
 	}
 
 	public static TableColumn<VintageStoryMap, String> createNameColumn(final Context context,
-			final Map<String, SaveInfo> saves) {
+			final Map<String, SaveInfo> saves, final Map<String, String> servers) {
 		final TableColumn<VintageStoryMap, String> column = new TableColumn<>("Name");
-		column.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(displayName(context, saves, data.getValue())));
+		column.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(displayName(context, saves, servers, data.getValue())));
 		return column;
 	}
 
 	public static TableColumn<VintageStoryMap, String> createSourceColumn(final Context context,
-			final Map<String, SaveInfo> saves) {
+			final Map<String, SaveInfo> saves, final Map<String, String> servers) {
 		final TableColumn<VintageStoryMap, String> column = new TableColumn<>("Source");
-		column.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(describeSource(context, saves, data.getValue())));
+		column.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(describeSource(context, saves, servers, data.getValue())));
 		return column;
 	}
 
@@ -178,8 +185,9 @@ public class MapsInfoPage {
 
 		final TableView<VintageStoryMap> table = new TableView<>(FXCollections.observableArrayList(instance.getMaps()));
 		final Map<String, SaveInfo> saves = SaveGameScanner.scan(instance.getDataPath());
-		table.getColumns().add(createNameColumn(context, saves));
-		table.getColumns().add(createSourceColumn(context, saves));
+		final Map<String, String> servers = context.getServerWorlds();
+		table.getColumns().add(createNameColumn(context, saves, servers));
+		table.getColumns().add(createSourceColumn(context, saves, servers));
 		table.getColumns().add(createFileColumn());
 		table.getColumns().add(createSizeColumn());
 		table.getColumns().add(createLastOpenColumn());
